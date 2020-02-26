@@ -1,0 +1,63 @@
+cabal-version:      2.0
+name:               sweet-egison
+version:            0.1.0.0
+synopsis:
+  Egison pattern matching in Haskell, compiled to backtracking monad
+
+-- description:
+bug-reports:        https://github.com/egison/sweet-egison/issues
+homepage:           https://github.com/egison/sweet-egison#readme
+license:            BSD3
+license-file:       LICENSE
+author:             coord_e
+maintainer:         coord_e <me@coord-e.com>, Satoshi Egi <egi@egison.org>
+copyright:          Copyright 2020 coord_e
+category:           Control, Pattern
+build-type:         Simple
+extra-source-files:
+  CHANGELOG.md
+  README.md
+
+source-repository head
+  type:     git
+  location: https://github.com/egison/sweet-egison
+
+library
+  hs-source-dirs:     src
+
+  -- cabal-fmt: expand src
+  exposed-modules:
+    Control.Egison
+    Control.Egison.Match
+    Control.Egison.Matcher.Multiset
+    Control.Egison.Matcher.Pair
+    Control.Egison.Matcher.Set
+    Control.Egison.Pattern
+    Control.Monad.Search
+    Control.Monad.Search.QQ
+    Data.View
+
+  build-depends:
+      base                        >=4.8   && <5
+    , egison-pattern-src          ^>=0.1.0
+    , egison-pattern-src-th-mode  ^>=0.1.0
+    , haskell-src-exts
+    , haskell-src-meta
+    , logict                      ^>=0.7.0
+    , template-haskell
+
+  ghc-options:
+    -Wall -Wcompat -Widentities -Wincomplete-record-updates
+    -Wincomplete-uni-patterns
+
+  default-language:   Haskell2010
+  default-extensions:
+    DefaultSignatures
+    DerivingStrategies
+    ExplicitForAll
+    FlexibleContexts
+    FlexibleInstances
+    GeneralizedNewtypeDeriving
+    NamedFieldPuns
+    TupleSections
+    TypeFamilies
