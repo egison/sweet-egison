@@ -9,6 +9,6 @@ main = do
   args <- getArgs
   let n = read (head args)
   let ans = matchAll @DFS $ [1 .. n] `with` [search|
-    (tails (cons $x (tails (cons $y _)))) => (x, y)
+    _ ++ $x : (_ ++ $y : _) => (x, y)
   |]
-  putStrLn . show $ length ans
+  print $ length ans

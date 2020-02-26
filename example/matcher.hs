@@ -9,5 +9,5 @@ main :: IO ()
 main = print $ take 10 results
  where
   results = matchAll @BFS $ [1 ..] `as` Set @(Plain Int) `with` [search|
-      (cons $x (cons $y _)) => (x, y)
+      $x : $y : _ => (x, y)
     |]
