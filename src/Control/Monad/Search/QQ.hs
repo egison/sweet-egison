@@ -38,19 +38,24 @@ import           Language.Haskell.Exts.Parser   ( ParseResult(..)
                                                 )
 import           Language.Haskell.Exts.Extension
                                                 ( Extension(EnableExtension) )
+import qualified Language.Haskell.Exts.Syntax  as Exts
+                                                ( QName(UnQual)
+                                                , Name(Ident)
+                                                )
 import           Language.Haskell.Exts.Extension
                                                as Exts
                                                 ( KnownExtension )
-import           Language.Egison.Parser.Pattern ( Fixity(..)
-                                                , Associativity(..)
-                                                , Precedence(..)
-                                                )
 import           Language.Egison.Syntax.Pattern
                                                as Pat
                                                 ( Expr(..) )
+import           Language.Egison.Parser.Pattern ( Fixity(..)
+                                                , ParseFixity(..)
+                                                , Associativity(..)
+                                                , Precedence(..)
+                                                )
 import           Language.Egison.Parser.Pattern.Mode.Haskell.TH
                                                as Pat
-                                                ( parseExprWithFixities )
+                                                ( parseExprWithParseFixities )
 
 
 search :: QuasiQuoter
@@ -90,11 +95,20 @@ splitClause = go []
   go acc (x         : xs) = go (acc ++ [x]) xs
   go _   []               = fail "'=>' is expected, but not found"
 
+listFixities :: [ParseFixity (Exts.QName ()) String]
+listFixities =
+  [ ParseFixity (Fixity AssocRight (Precedence 5) (uqName "join")) $ parser "++"
+  , ParseFixity (Fixity AssocRight (Precedence 5) (uqName "cons")) $ parser ":"
+  ]
+ where
+  uqName = Exts.UnQual () . Exts.Ident ()
+  parser symbol content | symbol == content = Right ()
+                        | otherwise = Left $ show symbol ++ "is expected"
+
 parsePatternExpr :: String -> Q (Pat.Expr Name Name Exp)
 parsePatternExpr content = do
   mode <- parseMode
-  -- TODO: listFixities
-  case Pat.parseExprWithFixities mode [] content of
+  case Pat.parseExprWithParseFixities mode listFixities content of
     Left  e -> fail $ show e
     Right x -> pure x
 
