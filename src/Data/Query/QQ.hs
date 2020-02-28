@@ -13,6 +13,8 @@ import           Control.Monad.Search           ( MonadSearch(..) )
 import           Data.Query                     ( Query(..) )
 
 -- main
+import           Data.Maybe                     ( mapMaybe )
+import           Text.Read                      ( readMaybe )
 import           Data.Foldable                  ( foldrM )
 import           Control.Monad.Fail             ( MonadFail )
 
@@ -69,11 +71,11 @@ query = QuasiQuoter { quoteExp  = compile
 parseMode :: Q ParseMode
 parseMode = do
   Loc { loc_filename } <- location
-  extensions           <- map (EnableExtension . convertExt) <$> extsEnabled
+  extensions <- mapMaybe (fmap EnableExtension . convertExt) <$> extsEnabled
   pure defaultParseMode { parseFilename = loc_filename, extensions }
  where
-  convertExt :: TH.Extension -> Exts.KnownExtension
-  convertExt = read . show
+  convertExt :: TH.Extension -> Maybe Exts.KnownExtension
+  convertExt = readMaybe . show
 
 parseExp :: String -> Q Exp
 parseExp content = do

@@ -1,4 +1,4 @@
-module Control.Egison.Matcher.Pair
+module Data.View.Pair
   ( Pair(..)
   , pair
   )

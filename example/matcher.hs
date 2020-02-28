@@ -2,7 +2,7 @@
 {-# LANGUAGE TypeApplications #-}
 
 import           Control.Egison
-import           Control.Egison.Matcher.Set
+import           Data.View.Set
 
 
 main :: IO ()

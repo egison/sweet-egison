@@ -1,4 +1,4 @@
-module Control.Egison.Matcher.Multiset
+module Data.View.Multiset
   ( Multiset(..)
   )
 where

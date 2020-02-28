@@ -29,14 +29,14 @@ library
   exposed-modules:
     Control.Egison
     Control.Egison.Match
-    Control.Egison.Matcher.Multiset
-    Control.Egison.Matcher.Pair
-    Control.Egison.Matcher.Set
     Control.Monad.Search
     Data.Query
     Data.Query.Pattern.Collection
     Data.Query.QQ
     Data.View
+    Data.View.Multiset
+    Data.View.Pair
+    Data.View.Set
 
   build-depends:
       base                        >=4.8   && <5
