@@ -34,7 +34,8 @@ library
     Control.Egison.Matcher.Set
     Control.Egison.Pattern
     Control.Monad.Search
-    Control.Monad.Search.QQ
+    Data.Query
+    Data.Query.QQ
     Data.View
 
   build-depends:

@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Control.Monad.Search.QQ
-  ( search
+module Data.Query.QQ
+  ( query
   )
 where
 
@@ -10,6 +10,7 @@ import           Control.Monad                  ( guard
                                                 , mplus
                                                 )
 import           Control.Monad.Search           ( MonadSearch(..) )
+import           Data.Query                     ( Query(..) )
 
 -- main
 import           Data.Foldable                  ( foldrM )
@@ -58,12 +59,12 @@ import           Language.Egison.Parser.Pattern.Mode.Haskell.TH
                                                 ( parseExprWithParseFixities )
 
 
-search :: QuasiQuoter
-search = QuasiQuoter { quoteExp  = compile
-                     , quotePat  = undefined
-                     , quoteType = undefined
-                     , quoteDec  = undefined
-                     }
+query :: QuasiQuoter
+query = QuasiQuoter { quoteExp  = compile
+                    , quotePat  = undefined
+                    , quoteType = undefined
+                    , quoteDec  = undefined
+                    }
 
 parseMode :: Q ParseMode
 parseMode = do
@@ -116,8 +117,9 @@ compilePattern :: Pat.Expr Name Name Exp -> Exp -> Q Exp
 compilePattern pat body = do
   tgt <- newName "tgt"
   tr  <- go pat tgt
-  pure . LamE [VarP tgt] . tr $ AppE (VarE pureName) body
+  pure . AppE (ConE queryName) . LamE [VarP tgt] $ tr s
  where
+  s = AppE (VarE pureName) body
   go :: Pat.Expr Name Name Exp -> Name -> Q (Exp -> Exp)
   go Pat.Wildcard     _ = pure id
   go (Pat.Variable x) t = pure $ \k -> let_ x (VarE t) k
@@ -150,6 +152,7 @@ compilePattern pat body = do
       pure $ f . acc
   sbind_ x f = ParensE (UInfixE (ParensE x) (VarE sbindOp) (ParensE f))
   let_ x e1 = LetE [ValD (VarP x) (NormalB e1) []]
+  queryName = 'Data.Query.Query
   guardName = 'Control.Monad.guard
   plusName  = 'Control.Monad.mplus
   pureName  = 'pure
