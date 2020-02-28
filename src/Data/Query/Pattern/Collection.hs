@@ -1,4 +1,4 @@
-module Control.Egison.Pattern
+module Data.Query.Pattern.Collection
   ( CollectionPattern(..)
   )
 where

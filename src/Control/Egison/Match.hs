@@ -1,15 +1,15 @@
 module Control.Egison.Match
-  ( MatchClause
-  , matchAll
+  ( matchAll
   , match
   , with
   )
 where
 
 import           Control.Monad.Search           ( MonadSearch(..) )
+import           Data.Query                     ( Query
+                                                , find
+                                                )
 
-
-type MatchClause strategy tgt out = tgt -> strategy out
 
 match :: forall strategy out . MonadSearch strategy => strategy out -> out
 match = head . matchAll
@@ -17,7 +17,7 @@ match = head . matchAll
 matchAll :: forall strategy out . MonadSearch strategy => strategy out -> [out]
 matchAll = collect
 
-with :: tgt -> MatchClause strategy tgt out -> strategy out
-with x mc = mc x
+with :: MonadSearch strategy => tgt -> Query strategy tgt out -> strategy out
+with x q = find q x
 
 infix 1 `with`

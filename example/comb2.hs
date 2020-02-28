@@ -8,7 +8,7 @@ main :: IO ()
 main = do
   args <- getArgs
   let n = read (head args)
-  let ans = matchAll @DFS $ [1 .. n] `with` [search|
-    _ ++ $x : (_ ++ $y : _) => (x, y)
+  let ans = matchAll @DFS $ [1 .. n] `with` [query|
+    _ ++ $x : _ ++ $y : _ => (x, y)
   |]
   print $ length ans

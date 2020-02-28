@@ -32,9 +32,10 @@ library
     Control.Egison.Matcher.Multiset
     Control.Egison.Matcher.Pair
     Control.Egison.Matcher.Set
-    Control.Egison.Pattern
     Control.Monad.Search
-    Control.Monad.Search.QQ
+    Data.Query
+    Data.Query.Pattern.Collection
+    Data.Query.QQ
     Data.View
 
   build-depends:
