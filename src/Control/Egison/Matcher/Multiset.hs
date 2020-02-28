@@ -6,7 +6,7 @@ where
 import           Data.View                      ( View(..) )
 import           Control.Monad                  ( MonadPlus(..) )
 
-import           Control.Egison.Pattern         ( CollectionPattern(..) )
+import           Data.Query.Pattern.Collection  ( CollectionPattern(..) )
 
 
 newtype Multiset a = Multiset [a]
