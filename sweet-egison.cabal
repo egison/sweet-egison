@@ -40,8 +40,8 @@ library
 
   build-depends:
       base                        >=4.8   && <5
-    , egison-pattern-src          ^>=0.1.0
-    , egison-pattern-src-th-mode  ^>=0.1.1
+    , egison-pattern-src          ^>=0.2.1
+    , egison-pattern-src-th-mode  ^>=0.2.1
     , haskell-src-exts
     , haskell-src-meta
     , logict                      ^>=0.7.0

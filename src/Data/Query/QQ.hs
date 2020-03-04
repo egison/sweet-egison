@@ -16,7 +16,6 @@ import           Data.Query                     ( Query(..) )
 import           Data.Maybe                     ( mapMaybe )
 import           Text.Read                      ( readMaybe )
 import           Data.Foldable                  ( foldrM )
-import           Control.Monad.Fail             ( MonadFail )
 
 import           Language.Haskell.TH            ( Q
                                                 , Loc(..)
@@ -28,37 +27,37 @@ import           Language.Haskell.TH            ( Q
                                                 , location
                                                 , extsEnabled
                                                 , newName
+                                                , mkName
                                                 )
 import           Language.Haskell.TH.Quote      ( QuasiQuoter(..) )
 import           Language.Haskell.TH           as TH
                                                 ( Extension )
 import           Language.Haskell.Meta.Syntax.Translate
                                                 ( toExp )
-import           Language.Haskell.Exts.Parser   ( ParseResult(..)
-                                                , ParseMode(..)
-                                                , defaultParseMode
-                                                , parseExpWithMode
-                                                )
 import           Language.Haskell.Exts.Extension
                                                 ( Extension(EnableExtension) )
-import qualified Language.Haskell.Exts.Syntax  as Exts
-                                                ( QName(UnQual)
-                                                , Name(Ident)
-                                                )
 import           Language.Haskell.Exts.Extension
                                                as Exts
                                                 ( KnownExtension )
+import           Language.Haskell.Exts.Parser   ( ParseResult(..)
+                                                , defaultParseMode
+                                                , parseExpWithMode
+                                                )
+import qualified Language.Haskell.Exts.Parser  as Exts
+                                                ( ParseMode(..) )
 import           Language.Egison.Syntax.Pattern
                                                as Pat
                                                 ( Expr(..) )
+import qualified Language.Egison.Parser.Pattern
+                                               as Pat
+                                                ( parseNonGreedy )
 import           Language.Egison.Parser.Pattern ( Fixity(..)
                                                 , ParseFixity(..)
                                                 , Associativity(..)
                                                 , Precedence(..)
                                                 )
 import           Language.Egison.Parser.Pattern.Mode.Haskell.TH
-                                               as Pat
-                                                ( parseExprWithParseFixities )
+                                                ( ParseMode(..) )
 
 
 query :: QuasiQuoter
@@ -68,52 +67,47 @@ query = QuasiQuoter { quoteExp  = compile
                     , quoteDec  = undefined
                     }
 
-parseMode :: Q ParseMode
+listFixities :: [ParseFixity Name String]
+listFixities =
+  [ ParseFixity (Fixity AssocRight (Precedence 5) (mkName "join")) $ parser "++"
+  , ParseFixity (Fixity AssocRight (Precedence 5) (mkName "cons")) $ parser ":"
+  ]
+ where
+  parser symbol content | symbol == content = Right ()
+                        | otherwise = Left $ show symbol ++ "is expected"
+
+parseMode :: Q Exts.ParseMode
 parseMode = do
   Loc { loc_filename } <- location
   extensions <- mapMaybe (fmap EnableExtension . convertExt) <$> extsEnabled
-  pure defaultParseMode { parseFilename = loc_filename, extensions }
+  pure defaultParseMode { Exts.parseFilename = loc_filename, Exts.extensions }
  where
   convertExt :: TH.Extension -> Maybe Exts.KnownExtension
   convertExt = readMaybe . show
 
-parseExp :: String -> Q Exp
-parseExp content = do
-  mode <- parseMode
-  case parseExpWithMode mode content of
-    ParseOk x       -> pure $ toExp x
-    ParseFailed _ e -> fail e
+parseExp :: Exts.ParseMode -> String -> Q Exp
+parseExp mode content = case parseExpWithMode mode content of
+  ParseOk x       -> pure $ toExp x
+  ParseFailed _ e -> fail e
 
 compile :: String -> Q Exp
 compile content = do
-  (patSource, bodySource) <- splitClause content
-  pat                     <- parsePatternExpr patSource
-  body                    <- parseExp bodySource
+  mode        <- parseMode
+  (pat, rest) <- parsePatternExpr mode content
+  bodySource  <- takeBody rest
+  body        <- parseExp mode bodySource
   compilePattern pat body
-
-splitClause :: MonadFail m => String -> m (String, String)
-splitClause = go []
  where
-  go acc ('=' : '>' : xs) = pure (acc, xs)
-  go acc (x         : xs) = go (acc ++ [x]) xs
-  go _   []               = fail "'=>' is expected, but not found"
+  takeBody ('-' : '>' : xs) = pure xs
+  takeBody xs               = fail $ "\"->\" is expected, but found " ++ show xs
 
-listFixities :: [ParseFixity (Exts.QName ()) String]
-listFixities =
-  [ ParseFixity (Fixity AssocRight (Precedence 5) (uqName "join")) $ parser "++"
-  , ParseFixity (Fixity AssocRight (Precedence 5) (uqName "cons")) $ parser ":"
-  ]
- where
-  uqName = Exts.UnQual () . Exts.Ident ()
-  parser symbol content | symbol == content = Right ()
-                        | otherwise = Left $ show symbol ++ "is expected"
+parsePatternExpr
+  :: Exts.ParseMode -> String -> Q (Pat.Expr Name Name Exp, String)
+parsePatternExpr haskellMode content = case Pat.parseNonGreedy mode content of
+  Left  e -> fail $ show e
+  Right x -> pure x
+  where mode = ParseMode { haskellMode, fixities = Just listFixities }
 
-parsePatternExpr :: String -> Q (Pat.Expr Name Name Exp)
-parsePatternExpr content = do
-  mode <- parseMode
-  case Pat.parseExprWithParseFixities mode listFixities content of
-    Left  e -> fail $ show e
-    Right x -> pure x
 
 compilePattern :: Pat.Expr Name Name Exp -> Exp -> Q Exp
 compilePattern pat body = do
