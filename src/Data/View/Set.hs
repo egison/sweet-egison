@@ -17,6 +17,8 @@ instance View a => View (Set a) where
 
 instance CollectionPattern (Set a) where
   type Element (Set a) = a
+  nil (Set []) = pure ()
+  nil _        = mzero
   cons (Set xs) = foldr go mzero xs
     where go x acc = pure (x, Set xs) `mplus` acc
 -- TODO: Implement

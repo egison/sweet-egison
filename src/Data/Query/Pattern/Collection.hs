@@ -9,11 +9,14 @@ import           Control.Monad.Search           ( MonadSearch )
 
 class CollectionPattern a where
   type Element a
+  nil :: MonadSearch m => a -> m ()
   cons :: MonadSearch m => a -> m (Element a, a)
   join :: MonadSearch m => a -> m (a, a)
 
 instance CollectionPattern [a] where
   type Element [a] = a
+  nil [] = pure ()
+  nil _  = mzero
   cons []       = mzero
   cons (x : xs) = pure (x, xs)
   join []       = pure ([], [])

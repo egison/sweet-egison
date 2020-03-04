@@ -137,6 +137,8 @@ compilePattern pat body = do
     tr <- go p t
     pure $ \k -> AppE (VarE lnotName) (tr pureU) `sbind_` LamE [TupP []] k
   go (Pat.Infix n p1 p2) t = go (Pattern n [p1, p2]) t
+  go (Pat.Collection ps) t = go (desugarCollection ps) t
+  go (Pat.Tuple      ps) t = go (desugarTuple ps) t
   go (Pat.Pattern n ps ) t = do
     xs <- mapM (\p -> (p, ) <$> newName "d") ps
     tr <- foldrM go' id xs
@@ -156,3 +158,11 @@ compilePattern pat body = do
   sbindOp   = '(Control.Monad.Search.>->)
   lnotName  = 'Control.Monad.Search.exclude
   pureU     = AppE (VarE pureName) (TupE [])
+
+desugarCollection :: [Pat.Expr Name Name Exp] -> Pat.Expr Name Name Exp
+desugarCollection = foldr go $ Pat.Pattern (mkName "nil") []
+  where go x acc = Pat.Pattern (mkName "cons") [x, acc]
+
+desugarTuple :: [Pat.Expr Name Name Exp] -> Pat.Expr Name Name Exp
+desugarTuple ps = Pat.Pattern (mkName name) ps
+  where name = "tuple" ++ show (length ps)

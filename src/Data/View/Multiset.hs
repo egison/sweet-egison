@@ -17,6 +17,8 @@ instance View a => View (Multiset a) where
 
 instance CollectionPattern (Multiset a) where
   type Element (Multiset a) = a
+  nil (Multiset []) = pure ()
+  nil _             = mzero
   cons (Multiset xs) = go xs [] mzero
    where
     go [] _ acc = acc
