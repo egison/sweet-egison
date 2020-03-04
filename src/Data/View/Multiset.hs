@@ -25,4 +25,5 @@ instance CollectionPattern (Multiset a) where
     go (x : xs') rest acc =
       pure (x, Multiset (rest ++ xs')) `mplus` go xs' (rest ++ [x]) acc
 -- TODO: Implement
-  join = undefined
+  join   = undefined
+  spread = undefined

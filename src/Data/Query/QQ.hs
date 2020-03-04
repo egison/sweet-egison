@@ -28,6 +28,7 @@ import           Language.Haskell.TH            ( Q
                                                 , extsEnabled
                                                 , newName
                                                 , mkName
+                                                , nameBase
                                                 )
 import           Language.Haskell.TH.Quote      ( QuasiQuoter(..) )
 import           Language.Haskell.TH           as TH
@@ -136,6 +137,9 @@ compilePattern pat body = do
   go (Pat.Not p) t = do
     tr <- go p t
     pure $ \k -> AppE (VarE lnotName) (tr pureU) `sbind_` LamE [TupP []] k
+  -- TODO: less ad-hoc optimization
+  go (Pat.Infix n Pat.Wildcard p2) t | nameBase n == "join" =
+    go (Pattern (mkName "spread") [p2]) t
   go (Pat.Infix n p1 p2) t = go (Pattern n [p1, p2]) t
   go (Pat.Collection ps) t = go (desugarCollection ps) t
   go (Pat.Tuple      ps) t = go (desugarTuple ps) t

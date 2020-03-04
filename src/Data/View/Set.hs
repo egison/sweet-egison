@@ -22,4 +22,5 @@ instance CollectionPattern (Set a) where
   cons (Set xs) = foldr go mzero xs
     where go x acc = pure (x, Set xs) `mplus` acc
 -- TODO: Implement
-  join = undefined
+  join   = undefined
+  spread = undefined
