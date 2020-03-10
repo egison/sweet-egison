@@ -46,6 +46,7 @@ library
     , haskell-src-meta
     , logict                      ^>=0.7.0
     , template-haskell
+    , transformers
 
   ghc-options:
     -Wall -Wcompat -Widentities -Wincomplete-record-updates
@@ -59,6 +60,9 @@ library
     FlexibleContexts
     FlexibleInstances
     GeneralizedNewtypeDeriving
+    LambdaCase
     NamedFieldPuns
+    StandaloneDeriving
     TupleSections
     TypeFamilies
+    TypeOperators

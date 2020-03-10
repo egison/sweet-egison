@@ -6,9 +6,7 @@ module Data.Query.QQ
 where
 
 -- imports to create 'Name' in compilation
-import           Control.Monad                  ( guard
-                                                , mplus
-                                                )
+import           Control.Monad                  ( MonadPlus(..) )
 import           Control.Monad.Search           ( MonadSearch(..) )
 import           Data.Query                     ( Query(..) )
 
@@ -122,8 +120,8 @@ compilePattern pat body = do
   go (Pat.Variable x) t = pure $ \k -> let_ x (VarE t) k
   go (Pat.Value e) t =
     go (Pat.Predicate $ InfixE Nothing (VarE eqOp) (Just e)) t
-  go (Pat.Predicate e) t = pure $ \k -> guardExp `sbind_` LamE [TupP []] k
-    where guardExp = AppE (VarE guardName) (AppE e (VarE t))
+  go (Pat.Predicate e) t = pure $ AppE guardExp
+    where guardExp = AppE (VarE guardedName) (AppE e (VarE t))
   go (Pat.And p1 p2) t = do
     t1 <- go p1 t
     t2 <- go p2 t
@@ -154,14 +152,14 @@ compilePattern pat body = do
       pure $ f . acc
   sbind_ x f = ParensE (UInfixE (ParensE x) (VarE sbindOp) (ParensE f))
   let_ x e1 = LetE [ValD (VarP x) (NormalB e1) []]
-  queryName = 'Data.Query.Query
-  guardName = 'Control.Monad.guard
-  plusName  = 'Control.Monad.mplus
-  pureName  = 'pure
-  eqOp      = '(==)
-  sbindOp   = '(Control.Monad.Search.>->)
-  lnotName  = 'Control.Monad.Search.exclude
-  pureU     = AppE (VarE pureName) (TupE [])
+  queryName   = 'Data.Query.Query
+  guardedName = 'Control.Monad.Search.guarded
+  plusName    = 'Control.Monad.mplus
+  pureName    = 'pure
+  eqOp        = '(==)
+  sbindOp     = '(Control.Monad.Search.>->)
+  lnotName    = 'Control.Monad.Search.exclude
+  pureU       = AppE (VarE pureName) (TupE [])
 
 desugarCollection :: [Pat.Expr Name Name Exp] -> Pat.Expr Name Name Exp
 desugarCollection = foldr go $ Pat.Pattern (mkName "nil") []
