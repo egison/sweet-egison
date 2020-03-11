@@ -112,7 +112,7 @@ compilePattern :: Pat.Expr Name Name Exp -> Exp -> Q Exp
 compilePattern pat body = do
   tgt <- newName "tgt"
   tr  <- go pat tgt
-  pure . AppE (ConE queryName) . LamE [VarP tgt] $ tr s
+  pure . AppE (ConE queryName) . LamE [boundTargetPat pat tgt] $ tr s
  where
   s = AppE (VarE pureName) body
   go :: Pat.Expr Name Name Exp -> Name -> Q (Exp -> Exp)
@@ -148,12 +148,14 @@ compilePattern pat body = do
   go (Pat.Pattern n ps ) t = do
     xs <- mapM (\p -> (p, ) <$> newName "d") ps
     tr <- foldrM go' id xs
-    pure $ \k ->
-      AppE (VarE n) (VarE t) `sbind_` LamE [TupP $ map (VarP . snd) xs] (tr k)
+    pure $ \k -> AppE (VarE n) (VarE t)
+      `sbind_` LamE [TupP $ map (uncurry boundTargetPat) xs] (tr k)
    where
     go' (p', t') acc = do
       f <- go p' t'
       pure $ f . acc
+  boundTargetPat Pat.Wildcard _ = WildP
+  boundTargetPat _            x = VarP x
   sbind_ x f = ParensE (UInfixE (ParensE x) (VarE sbindOp) (ParensE f))
   let_ x e1 = LetE [ValD (VarP x) (NormalB e1) []]
   queryName   = 'Data.Query.Query
