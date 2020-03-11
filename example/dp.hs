@@ -19,8 +19,6 @@ newtype Literal = Literal Integer
 
 instance Matcher Literal where
   type Target Literal = Integer
-  wrap = Literal
-  unwrap (Literal a) = a
 
 
 deleteLiteral l cnf =

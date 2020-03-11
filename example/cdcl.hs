@@ -22,8 +22,6 @@ newtype Literal = Literal Integer
 
 instance Matcher Literal where
   type Target Literal = Integer
-  wrap = Literal
-  unwrap (Literal a) = a
 
 -- Stage matcher
 newtype Stage = Stage Integer
@@ -31,8 +29,6 @@ newtype Stage = Stage Integer
 
 instance Matcher Stage where
   type Target Stage = Integer
-  wrap = Stage
-  unwrap (Stage a) = a
 
 -- Matchers for assignments
 type TaggedLiteral = (Integer, Integer) -- a tuple of a variable and a stage
@@ -44,8 +40,6 @@ data Assign = Deduced TaggedLiteral [TaggedLiteral]
 data Assignment = Assignment Assign
 instance Matcher Assignment where
   type Target Assignment = Assign
-  wrap = Assignment
-  unwrap (Assignment x) = x
 
 deduced
   :: MonadSearch m
