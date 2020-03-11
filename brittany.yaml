@@ -15,6 +15,8 @@ conf_forward:
   options_ghc:
     - -XScopedTypeVariables
     - -XTypeApplications
+    - -XQuasiQuotes
+    - -XLambdaCase
 conf_errorHandling:
   econf_ExactPrintFallback: ExactPrintFallbackModeInline
   econf_Werror: false
