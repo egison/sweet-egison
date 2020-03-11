@@ -18,6 +18,13 @@ import           Test.Tasty.HUnit
 import           Data.Numbers.Primes            ( primes )
 
 
+pmap :: (a -> b) -> [a] -> [b]
+pmap f xs = matchAll @DFS @(List (M _)) xs [q| _ ++ $x : _ -> f x |]
+
+pmember :: Eq a => a -> [a] -> Bool
+pmember x xs =
+  match @DFS @(Multiset (M _)) xs $ [q| #x : _ -> True |] <> [q| _ -> False |]
+
 test_list :: [TestTree]
 test_list =
   [ testCase "cons pattern for list" $ do
@@ -38,6 +45,10 @@ test_list =
       [q|
           $xs ++ $ys -> (xs, ys)
         |]
+  , testCase "'map' defined using matchAll" $ do
+    assertEqual "simple" [2, 4, 6] . take 3 $ pmap (* 2) [1 ..]
+  , testCase "'member' defined using matchAll" $ do
+    assertEqual "simple" False $ pmember 2 [1, 3, 4]
   ]
 
 test_multiset :: [TestTree]
