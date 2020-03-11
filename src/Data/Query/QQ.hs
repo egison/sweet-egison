@@ -116,12 +116,15 @@ compilePattern pat body = do
  where
   s = AppE (VarE pureName) body
   go :: Pat.Expr Name Name Exp -> Name -> Q (Exp -> Exp)
-  go Pat.Wildcard     _ = pure id
-  go (Pat.Variable x) t = pure $ \k -> let_ x (VarE t) k
+  go Pat.Wildcard _ = pure id
+  go (Pat.Variable x) t =
+    pure $ \k -> let_ x (AppE (VarE $ mkName "unwrap") (VarE t)) k
   go (Pat.Value e) t =
     go (Pat.Predicate $ InfixE Nothing (VarE eqOp) (Just e)) t
   go (Pat.Predicate e) t = pure $ AppE guardExp
-    where guardExp = AppE (VarE guardedName) (AppE e (VarE t))
+   where
+    guardExp =
+      AppE (VarE guardedName) (AppE e (AppE (VarE $ mkName "unwrap") (VarE t)))
   go (Pat.And p1 p2) t = do
     t1 <- go p1 t
     t2 <- go p2 t

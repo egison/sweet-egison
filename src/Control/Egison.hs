@@ -12,10 +12,10 @@ module Control.Egison
 where
 
 import           Control.Egison.Match          as X
+import           Control.Egison.Matcher        as X
 
 import           Control.Monad.Search          as X
 
-import           Data.View                     as X
 import           Data.Query                    as X
 import           Data.Query.QQ                 as X
 import           Data.Query.Pattern.Collection as X

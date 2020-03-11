@@ -1,9 +1,9 @@
-module Data.View.Set
+module Control.Egison.Matcher.Set
   ( Set(..)
   )
 where
 
-import           Data.View                      ( View(..) )
+import           Control.Egison.Matcher         ( Matcher(..) )
 import           Control.Monad                  ( MonadPlus(..) )
 
 import           Data.Query.Pattern.Collection  ( CollectionPattern(..) )
@@ -11,9 +11,10 @@ import           Data.Query.Pattern.Collection  ( CollectionPattern(..) )
 
 newtype Set a = Set [a]
 
-instance View a => View (Set a) where
+instance Matcher a => Matcher (Set a) where
   type Target (Set a) = [Target a]
-  type Projection (Set a) = Set (Projection a)
+  wrap x = Set $ map wrap x
+  unwrap (Set x) = map unwrap x
 
 instance CollectionPattern (Set a) where
   type Element (Set a) = a

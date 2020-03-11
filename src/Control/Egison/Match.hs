@@ -1,23 +1,30 @@
+{-# LANGUAGE AllowAmbiguousTypes #-}
+
 module Control.Egison.Match
   ( matchAll
   , match
-  , with
   )
 where
 
+import           Control.Egison.Matcher         ( Matcher(..) )
 import           Control.Monad.Search           ( MonadSearch(..) )
 import           Data.Query                     ( Query
                                                 , find
                                                 )
 
 
-match :: forall strategy out . MonadSearch strategy => strategy out -> out
-match = head . matchAll
+match
+  :: forall strategy matcher out
+   . (Matcher matcher, MonadSearch strategy)
+  => Target matcher
+  -> Query strategy matcher out
+  -> out
+match tgt = head . matchAll tgt
 
-matchAll :: forall strategy out . MonadSearch strategy => strategy out -> [out]
-matchAll = collect
-
-with :: MonadSearch strategy => tgt -> Query strategy tgt out -> strategy out
-with x q = find q x
-
-infix 1 `with`
+matchAll
+  :: forall strategy matcher out
+   . (Matcher matcher, MonadSearch strategy)
+  => Target matcher
+  -> Query strategy matcher out
+  -> [out]
+matchAll tgt q = collect . find q $ wrap tgt
