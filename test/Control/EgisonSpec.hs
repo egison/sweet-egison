@@ -23,19 +23,19 @@ test_list =
   [ testCase "cons pattern for list" $ do
     assertEqual "simple" [(1, [2, 3])] $ matchAll @BFS @(List (M Int))
       [1, 2, 3]
-      [query|
+      [q|
           $x : $xs -> (x, xs)
         |]
   , testCase "cons pattern for list (infinite)" $ do
     assertEqual "simple" [1] $ matchAll @BFS @(List (M Int))
       [1 ..]
-      [query|
+      [q|
           $x : _ -> x
         |]
   , testCase "join pattern for list" $ do
     assertEqual "length" 6 $ length $ matchAll @BFS @(List (M Int))
       [1 .. 5]
-      [query|
+      [q|
           $xs ++ $ys -> (xs, ys)
         |]
   ]
@@ -46,7 +46,7 @@ test_multiset =
       assertEqual "simple" [(1, [2, 3]), (2, [1, 3]), (3, [1, 2])]
         $ matchAll @BFS @(Multiset (M Int))
             [1, 2, 3]
-            [query|
+            [q|
           $x : $xs -> (x, xs)
         |]
   ]
@@ -70,7 +70,7 @@ test_infinite =
       $ take 10
       $ matchAll @BFS @(Multiset (M Int))
           [1 ..]
-          [query|
+          [q|
         $x : $y : _ -> (x, y)
       |]
   , testCase "set bfs order" $ do
@@ -90,7 +90,7 @@ test_infinite =
       $ take 10
       $ matchAll @BFS @(Set (M Int))
           [1 ..]
-          [query|
+          [q|
         $x : $y : _ -> (x, y)
       |]
   , testCase "set dfs order" $ do
@@ -110,7 +110,7 @@ test_infinite =
       $ take 10
       $ matchAll @DFS @(Set (M Int))
           [1 ..]
-          [query|
+          [q|
         $x : $y : _ -> (x, y)
       |]
   ]
@@ -120,7 +120,7 @@ test_predicate =
   [ testCase "predicate pattern" $ do
       assertEqual "simple" [2, 4, 6, 8, 10] $ matchAll @BFS @(Multiset (M Int))
         [1 .. 10]
-        [query|
+        [q|
       (?(\x -> mod x 2 == 0) & $x) : _ -> x
     |]
   ]
@@ -130,7 +130,7 @@ test_not =
   [ testCase "not pattern" $ do
       assertEqual "simple" [1, 3, 2] $ matchAll @BFS @(List (M Int))
         [1, 1, 2, 3, 1, 3, 2]
-        [query| _ ++ $x : !(_ ++ #x : _) -> x |]
+        [q| _ ++ $x : !(_ ++ #x : _) -> x |]
   ]
 
 test_prime :: [TestTree]
@@ -152,7 +152,7 @@ test_prime =
       $ take 10
       $ matchAll @BFS @(List (M Int))
           primes
-          [query|
+          [q|
       _ ++ $p : #(p+2) : _ -> (p, p+2)
     |]
   , testCase "(p, p+6)" $ do
@@ -160,7 +160,7 @@ test_prime =
       $ take 5
       $ matchAll @BFS @(List (M Int))
           primes
-          [query|
+          [q|
         _ ++ $p : _ ++ #(p+6) : _ -> (p, p+6)
       |]
   , testCase "prime triplets" $ do
@@ -180,7 +180,7 @@ test_prime =
       $ take 10
       $ matchAll @BFS @(List (M Int))
           primes
-          [query|
+          [q|
         _ ++ $p : ($m & (#(p+2) | #(p+4))) : #(p+6) : _ -> (p, m, p+6)
       |]
   ]

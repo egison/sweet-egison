@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 module Data.Query.QQ
-  ( query
+  ( q
   )
 where
 
@@ -59,12 +59,12 @@ import           Language.Egison.Parser.Pattern.Mode.Haskell.TH
                                                 ( ParseMode(..) )
 
 
-query :: QuasiQuoter
-query = QuasiQuoter { quoteExp  = compile
-                    , quotePat  = undefined
-                    , quoteType = undefined
-                    , quoteDec  = undefined
-                    }
+q :: QuasiQuoter
+q = QuasiQuoter { quoteExp  = compile
+                , quotePat  = undefined
+                , quoteType = undefined
+                , quoteDec  = undefined
+                }
 
 listFixities :: [ParseFixity Name String]
 listFixities =
