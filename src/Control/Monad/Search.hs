@@ -61,17 +61,11 @@ instance MonadSearch BFS where
     Nothing -> pure Nothing
 
 -- | DFS Monad
-newtype DFS a = DFS { unDFS :: MaybeT [] a }
-  deriving newtype (Functor, Applicative, Monad, Foldable)
-  deriving Alternative via [] :.: Maybe
-  deriving MonadLogic via SkipNothing []
-
-instance MonadPlus DFS
+newtype DFS a = DFS { unDFS :: [a] }
+  deriving newtype (Functor, Applicative, Monad, Foldable, Alternative, MonadPlus, MonadLogic)
 
 instance MonadSearch DFS where
   guarded True  m = m
-  guarded False _ = DFS . MaybeT $ pure Nothing
+  guarded False _ = mzero
   exclude = lnot
-  DFS m >-> f = DFS . MaybeT $ runMaybeT m >>= \case
-    Just x  -> runMaybeT . unDFS $ f x
-    Nothing -> pure Nothing
+  DFS m >-> f = DFS $ m >>= (unDFS . f)
