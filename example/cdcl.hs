@@ -7,7 +7,6 @@
 {-# LANGUAGE TypeApplications         #-}
 
 import           Data.List
-import           Data.Coerce                    ( coerce )
 import           Debug.Trace                    ( trace )
 import           Control.Monad                  ( MonadPlus(..) )
 import           Control.Egison
@@ -35,9 +34,10 @@ type TaggedLiteral = (Integer, Integer) -- a tuple of a variable and a stage
 
 data Assign = Deduced TaggedLiteral [TaggedLiteral]
             | Guessed TaggedLiteral
-  deriving (Show)
+  deriving Show
 
-data Assignment = Assignment Assign
+newtype Assignment = Assignment Assign
+
 instance Matcher Assignment where
   type Target Assignment = Assign
 
@@ -45,16 +45,16 @@ deduced
   :: MonadSearch m
   => Assignment
   -> m (Pair Literal Stage, Multiset (Pair Literal Stage))
-deduced (Assignment (Deduced l ls)) = pure (coerce l, coerce ls)
+deduced (Assignment (Deduced l ls)) = pure (wrap l, wrap ls)
 deduced _                           = mzero
 
 guessed :: MonadSearch m => Assignment -> m (Pair Literal Stage)
-guessed (Assignment (Guessed l)) = pure (coerce l)
+guessed (Assignment (Guessed l)) = pure (wrap l)
 guessed _                        = mzero
 
 whichever :: MonadSearch m => Assignment -> m (Pair Literal Stage)
-whichever (Assignment (Deduced l _)) = pure (coerce l)
-whichever (Assignment (Guessed l  )) = pure (coerce l)
+whichever (Assignment (Deduced l _)) = pure (wrap l)
+whichever (Assignment (Guessed l  )) = pure (wrap l)
 
 --
 -- VSIDS
