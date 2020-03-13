@@ -13,13 +13,17 @@ newtype Multiset a = Multiset [a]
 
 instance Matcher a => Matcher (Multiset a) where
   type Target (Multiset a) = [Target a]
+  {-# INLINE wrap #-}
   wrap = Multiset . map wrap
+  {-# INLINE unwrap #-}
   unwrap (Multiset xs) = map unwrap xs
 
 instance CollectionPattern (Multiset a) where
   type Element (Multiset a) = a
+  {-# INLINABLE nil #-}
   nil (Multiset []) = pure ()
   nil _             = mzero
+  {-# INLINABLE cons #-}
   cons (Multiset xs) = go xs [] mzero
    where
     go [] _ acc = acc

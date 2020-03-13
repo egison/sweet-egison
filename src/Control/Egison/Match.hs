@@ -13,6 +13,7 @@ import           Data.Query                     ( Query
                                                 )
 
 
+{-# INLINABLE match #-}
 match
   :: forall strategy matcher out
    . (Matcher matcher, MonadSearch strategy)
@@ -21,6 +22,7 @@ match
   -> out
 match tgt = head . matchAll tgt
 
+{-# INLINABLE matchAll #-}
 matchAll
   :: forall strategy matcher out
    . (Matcher matcher, MonadSearch strategy)

@@ -26,6 +26,7 @@ class MonadPlus m => MonadSearch m where
   (>->) :: m a -> (a -> m b) -> m b
   exclude :: m a -> m ()
 
+  {-# INLINABLE collect #-}
   default collect :: Foldable m => m a -> [a]
   collect = toList
 
@@ -53,9 +54,12 @@ newtype BFS a = BFS { unBFS :: MaybeT Logic a }
 instance MonadPlus BFS
 
 instance MonadSearch BFS where
+  {-# INLINABLE guarded #-}
   guarded True  m = m
   guarded False _ = BFS . MaybeT $ pure Nothing
+  {-# INLINABLE exclude #-}
   exclude = lnot
+  {-# INLINE (>->) #-}
   BFS m >-> f = BFS . MaybeT $ runMaybeT m >>- \case
     Just x  -> runMaybeT . unBFS $ f x
     Nothing -> pure Nothing
@@ -65,7 +69,10 @@ newtype DFS a = DFS { unDFS :: [a] }
   deriving newtype (Functor, Applicative, Monad, Foldable, Alternative, MonadPlus, MonadLogic)
 
 instance MonadSearch DFS where
+  {-# INLINABLE guarded #-}
   guarded True  m = m
   guarded False _ = mzero
+  {-# INLINABLE exclude #-}
   exclude = lnot
+  {-# INLINE (>->) #-}
   DFS m >-> f = DFS $ m >>= (unDFS . f)
