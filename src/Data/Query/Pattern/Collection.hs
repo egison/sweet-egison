@@ -3,7 +3,6 @@ module Data.Query.Pattern.Collection
   )
 where
 
-import           Control.Monad                  ( MonadPlus(..) )
 import           Control.Monad.Search           ( MonadSearch )
 
 

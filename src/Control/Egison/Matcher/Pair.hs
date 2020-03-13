@@ -6,7 +6,6 @@ module Control.Egison.Matcher.Pair
 where
 
 import           Control.Egison.Matcher         ( Matcher(..) )
-import           Control.Monad                  ( MonadPlus(..) )
 import           Control.Monad.Search           ( MonadSearch )
 
 
