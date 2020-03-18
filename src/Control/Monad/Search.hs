@@ -1,4 +1,5 @@
 {-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE DeriveAnyClass #-}
 
 module Control.Monad.Search
   ( MonadSearch(..)
@@ -36,8 +37,7 @@ newtype SkipNothing m a = SkipNothing (MaybeT m a)
   deriving newtype MonadTrans
   deriving newtype (Functor, Applicative, Monad)
   deriving Alternative via m :.: Maybe
-
-instance (Monad m, Alternative m) => MonadPlus (SkipNothing m)
+  deriving anyclass MonadPlus
 
 instance MonadLogic m => MonadLogic (SkipNothing m) where
   msplit (SkipNothing m) = (lift . msplit $ runMaybeT m) >>= \case
@@ -49,9 +49,8 @@ instance MonadLogic m => MonadLogic (SkipNothing m) where
 newtype BFS a = BFS { unBFS :: MaybeT Logic a }
   deriving newtype (Functor, Applicative, Monad, Foldable)
   deriving Alternative via Logic :.: Maybe
+  deriving anyclass MonadPlus
   deriving MonadLogic via SkipNothing Logic
-
-instance MonadPlus BFS
 
 instance MonadSearch BFS where
   {-# INLINABLE guarded #-}
