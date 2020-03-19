@@ -3,8 +3,9 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE TypeFamilies         #-}
-{-# LANGUAGE TypeApplications         #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TupleSections         #-}
 
 import           Data.List
 import           Debug.Trace                    ( trace )
@@ -60,13 +61,13 @@ whichever (Assignment (Guessed l  )) = pure (wrap l)
 -- VSIDS
 --
 toCNF :: [[Integer]] -> [([Integer], [Integer])]
-toCNF cs = map (\c -> (c, c)) cs
+toCNF = map (\c -> (c, c))
 
 fromCNF :: [([Integer], [Integer])] -> [[Integer]]
-fromCNF cnf = map (\(c1, _) -> c1) cnf
+fromCNF = map fst
 
 initVars :: [Integer] -> [(Integer, Integer)]
-initVars vs = map (\v -> (negate v, 0)) vs ++ map (\v -> (v, 0)) vs
+initVars vs = map ((, 0) . negate) vs ++ map (, 0) vs
 
 addVars :: [Integer] -> [(Integer, Integer)] -> [(Integer, Integer)]
 addVars vs vars =
@@ -211,16 +212,18 @@ cdcl' count stage vars cnf trail =
   where (cnf2, trail2) = unitPropagate stage cnf trail
     -- (cnf2, trail2) = unitPropagate stage cnf (trace (show trail) trail) -- debug
 
+main :: IO ()
 main = do
---  putStrLn $ show $ cdcl [] []
---  putStrLn $ show $ cdcl [] [[]]
---  putStrLn $ show $ cdcl [1] [[1]]
---  putStrLn $ show $ cdcl [1,2] [[1],[1,2]]
---  putStrLn $ "Problem 20"
---  putStrLn $ show $ cdcl [1..20] problem20 -- 0.293 sec
-  putStrLn $ "Problem 50"
-  putStrLn $ show $ cdcl [1 .. 50] problem50 -- 2.570 sec
+  print $ cdcl [] []
+  print $ cdcl [] [[]]
+  print $ cdcl [1] [[1]]
+  print $ cdcl [1, 2] [[1], [1, 2]]
+  putStrLn "Problem 20"
+  print $ cdcl [1 .. 20] problem20
+  putStrLn "Problem 50"
+  print $ cdcl [0 .. 50] problem50
 
+problem20 :: [[Integer]]
 problem20 =
   [ [4, -18, 19]
   , [3, 18, -5]

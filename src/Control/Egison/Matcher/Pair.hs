@@ -14,7 +14,7 @@ newtype Pair a b = Pair (a, b)
 instance (Matcher a, Matcher b) => Matcher (Pair a b) where
   type Target (Pair a b) = (Target a, Target b)
   {-# INLINE wrap #-}
-  wrap (a, b) = Pair $ (wrap a, wrap b)
+  wrap (a, b) = Pair (wrap a, wrap b)
   {-# INLINE unwrap #-}
   unwrap (Pair (a, b)) = (unwrap a, unwrap b)
 

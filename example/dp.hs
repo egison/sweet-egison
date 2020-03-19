@@ -36,7 +36,7 @@ tautology c =
     <> [q| _ -> False |]
 
 resolveOn v cnf = filter
-  (\c -> not (tautology c))
+  (not . tautology)
   (matchAll @BFS @(Multiset (Multiset Literal))
     cnf
     [q| (#v : $xs) :
@@ -67,12 +67,13 @@ dp vars cnf =
             dp vs (resolveOn v cnf ++
                    deleteClausesWith v (deleteClausesWith (negate v) cnf)) |]
 
+main :: IO ()
 main = do
-  putStrLn $ show $ dp [] []
-  putStrLn $ show $ dp [] [[]]
-  putStrLn $ show $ dp [1] [[1]]
-  putStrLn $ show $ dp [1, 2] [[1], [1, 2]]
-  putStrLn $ show $ dp [1 .. 50] problem
+  print $ dp [] []
+  print $ dp [] [[]]
+  print $ dp [1] [[1]]
+  print $ dp [1, 2] [[1], [1, 2]]
+  print $ dp [1 .. 50] problem
 
 problem =
   [ [18, -8, 29]

@@ -10,6 +10,8 @@
 #
 - arguments:
   - -XTypeApplications
+  - -XTypeOperators
+  - -XQuasiQuotes
 
 # Control which extensions/flags/modules/functions can be used
 #
@@ -49,7 +51,6 @@
 
 # Ignore some builtin hints
 - ignore: {name: Reduce duplication}
-- ignore: {within: Build_doctests}
 
 
 # Define some custom infix operators
