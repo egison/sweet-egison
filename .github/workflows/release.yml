@@ -47,6 +47,7 @@ jobs:
       - uses: actions/checkout@master
       - uses: actions/setup-haskell@v1
       - run: |
+          shopt -s globstar nullglob
           for cabal_file in **/*.cabal; do
             pushd "$(dirname $cabal_file)"
             test $(sed -e 's/^version:\s*\(.*\)$/\1/;t;d' $cabal_file) = ${GITHUB_REF#refs\/tags\/v}
