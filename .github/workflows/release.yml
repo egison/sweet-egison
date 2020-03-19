@@ -1,0 +1,84 @@
+on:
+  push:
+    tags:
+      - 'v*'
+
+name: release
+
+jobs:
+  release_test:
+    name: test
+    runs-on: ubuntu-16.04
+    strategy:
+      matrix:
+        ghc:
+          - '8.2.2'
+          - '8.4.4'
+          - '8.6.5'
+          - '8.8.1'
+        cabal:
+          - '2.4'
+          - '3.0'
+        exclude:
+          - ghc: '8.8.1'
+            cabal: '2.4'
+    steps:
+      - uses: actions/checkout@master
+        with:
+          path: src
+      - uses: actions/setup-haskell@v1
+        with:
+          ghc-version: ${{ matrix.ghc }}
+          cabal-version: ${{ matrix.cabal }}
+      - run: cd src; cabal new-update
+      - run: |
+          cd src
+          mkdir ../sdist
+          cabal new-sdist all -o ../sdist
+      - run: |
+          cd sdist
+          for archive in *.tar.gz; do tar xf "$archive"; done
+          echo "packages: */" > cabal.project
+          cabal new-test all
+  validate_cabal:
+    name: validate .cabal files
+    runs-on: ubuntu-16.04
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-haskell@v1
+      - run: |
+          for cabal_file in **/*.cabal; do
+            pushd "$(dirname $cabal_file)"
+            test $(sed -e 's/^version:\s*\(.*\)$/\1/;t;d' $cabal_file) = ${GITHUB_REF#refs\/tags\/v}
+            cabal check
+            popd
+          done
+  create_release:
+    name: create release
+    needs:
+      - release_test
+      - validate_cabal
+    runs-on: ubuntu-16.04
+    steps:
+      - uses: actions/checkout@master
+      - run: ./dev/ci/github_release.sh
+        id: github_release
+      - uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ steps.github_release.outputs.name }}
+          body: ${{ steps.github_release.outputs.body }}
+          draft: false
+  publish:
+    name: publish packages to Hackage
+    needs:
+      - release_test
+      - validate_cabal
+    runs-on: ubuntu-16.04
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-haskell@v1
+      - run: mkdir sdist; cabal new-sdist all -o sdist
+      - run: cabal upload --publish -u '${{ secrets.HACKAGE_USERNAME }}' -p '${{ secrets.HACKAGE_PASSWORD }}' sdist/*.tar.gz

@@ -1,0 +1,48 @@
+on: push
+
+name: latest
+
+jobs:
+  test:
+    name: test
+    runs-on: ubuntu-16.04
+    strategy:
+      matrix:
+        ghc:
+          - '8.2.2'
+          - '8.4.4'
+          - '8.6.5'
+          - '8.8.1'
+        cabal:
+          - '2.4'
+          - '3.0'
+        exclude:
+          - ghc: '8.8.1'
+            cabal: '2.4'
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-haskell@v1
+        with:
+          ghc-version: ${{ matrix.ghc }}
+          cabal-version: ${{ matrix.cabal }}
+      - run: cabal new-update
+      - run: cabal new-test all
+  hlint:
+    name: lint .hs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - run: docker run -v $(pwd):/work coorde/hlint:2.2.11 hlint --git
+  hs-fmt:
+    name: check .hs style
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - run: find . -name '*.hs' -exec docker run -v $(pwd):/work herpinc/brittany:0.12.1.1 brittany --check-mode {} +
+  cabal-fmt:
+    name: check .cabal style
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - run: find . -name '*.cabal' -exec docker run -v $(pwd):/work coorde/cabal-fmt:0.1.2 cabal-fmt -i {} +
+      - run: git diff --exit-code
