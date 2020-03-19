@@ -22,33 +22,29 @@ instance Matcher Literal where
 
 
 deleteLiteral l cnf =
-  map (\c -> matchAll @BFS @(Multiset Literal) c [q| (!#l & $m) : _ -> m |]) cnf
+  map (\c -> matchAll c @BFS @(Multiset Literal) [q| (!#l & $m) : _ -> m |]) cnf
 
-deleteClausesWith l cnf = matchAll @BFS @(Multiset (Multiset Literal))
-  cnf
+deleteClausesWith l cnf = matchAll @BFS cnf @(Multiset (Multiset Literal))
   [q| (!(#l : _) & $c) : _ -> c |]
 
 assignTrue l cnf = deleteLiteral (negate l) (deleteClausesWith l cnf)
 
 tautology c =
-  match @BFS @(Multiset Literal) c
+  match @BFS c @(Multiset Literal)
     $  [q| $l : #(negate l) : _ -> True |]
     <> [q| _ -> False |]
 
 resolveOn v cnf = filter
   (not . tautology)
-  (matchAll @BFS @(Multiset (Multiset Literal))
-    cnf
-    [q| (#v : $xs) :
-                   (#(negate v) : $ys) :
-                    _ ->
-                  nub (xs ++ ys) |]
+  (matchAll @BFS cnf @(Multiset (Multiset Literal)) [q|
+     (#v : $xs) : (#(negate v) : $ys) : _ -> nub (xs ++ ys)
+   |]
   )
 
 dp :: [Integer] -> [[Integer]] -> Bool
 dp vars cnf =
-  match @BFS @(Pair (Multiset Literal) (Multiset (Multiset Literal)))
-      (vars, cnf)
+  match @BFS (vars, cnf)
+    @(Pair (Multiset Literal) (Multiset (Multiset Literal)))
      -- satisfiable
     $ [q| (_, []) -> True |]
      -- unsatisfiable

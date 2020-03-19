@@ -7,7 +7,7 @@ import           Criterion.Main
 
 comb2 :: Int -> [(Int, Int)]
 comb2 n =
-  matchAll @DFS @(List (M Int)) [1 .. n] [q| _ ++ $x : _ ++ $y : _ -> (x, y) |]
+  matchAll @DFS [1 .. n] @(List (M Int)) [q| _ ++ $x : _ ++ $y : _ -> (x, y) |]
 
 comb2Native :: Int -> [(Int, Int)]
 comb2Native n = [ (y, z) | y : ts <- tails xs, z <- ts ] where xs = [1 .. n]
