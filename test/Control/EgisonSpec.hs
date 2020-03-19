@@ -99,6 +99,24 @@ test_infinite =
     $ matchAll @BFS [1 ..] @(Set (M Int)) [q|
         $x : $y : _ -> (x, y)
       |]
+  , testCase "use bfs if omitted"
+    $ assertEqual
+        "simple"
+        [ (1, 1)
+        , (2, 1)
+        , (1, 2)
+        , (3, 1)
+        , (1, 3)
+        , (2, 2)
+        , (1, 4)
+        , (4, 1)
+        , (1, 5)
+        , (2, 3)
+        ]
+    $ take 10
+    $ matchAll [1 ..] @(Set (M Int)) [q|
+        $x : $y : _ -> (x, y)
+      |]
   , testCase "set dfs order"
     $ assertEqual
         "simple"
