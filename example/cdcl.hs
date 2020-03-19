@@ -7,13 +7,13 @@
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TupleSections         #-}
 
-import           Data.List
-import           Debug.Trace                    ( trace )
-import           Control.Monad                  ( MonadPlus(..) )
 import           Control.Egison
-import           Control.Egison.Matcher.Multiset
-import           Control.Egison.Matcher.List
-import           Control.Egison.Matcher.Pair
+
+import           Data.List                      ( sortBy
+                                                , union
+                                                )
+import           Control.Monad                  ( MonadPlus(..) )
+import           Debug.Trace                    ( trace )
 
 
 -- Literal matcher

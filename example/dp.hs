@@ -7,10 +7,11 @@
 {-# LANGUAGE TypeApplications         #-}
 {-# LANGUAGE TypeFamilies         #-}
 
-import           Data.List
 import           Control.Egison
-import           Control.Egison.Matcher.Pair
-import           Control.Egison.Matcher.Multiset
+
+import           Data.List                      ( nub
+                                                , delete
+                                                )
 
 
 -- Literal matcher
@@ -22,7 +23,7 @@ instance Matcher Literal where
 
 
 deleteLiteral l cnf =
-  map (\c -> matchAll c @BFS @(Multiset Literal) [q| (!#l & $m) : _ -> m |]) cnf
+  map (\c -> matchAll @BFS c @(Multiset Literal) [q| (!#l & $m) : _ -> m |]) cnf
 
 deleteClausesWith l cnf = matchAll @BFS cnf @(Multiset (Multiset Literal))
   [q| (!(#l : _) & $c) : _ -> c |]

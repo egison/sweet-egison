@@ -9,9 +9,6 @@ module Control.EgisonSpec
 where
 
 import           Control.Egison
-import           Control.Egison.Matcher.Multiset
-import           Control.Egison.Matcher.List
-import           Control.Egison.Matcher.Set
 
 import           Test.Tasty
 import           Test.Tasty.HUnit

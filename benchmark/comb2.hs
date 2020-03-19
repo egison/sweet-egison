@@ -1,5 +1,4 @@
 import           Control.Egison
-import           Control.Egison.Matcher.List
 
 import           Data.List                      ( tails )
 import           Criterion.Main

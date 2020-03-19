@@ -1,5 +1,4 @@
 import           Control.Egison
-import           Control.Egison.Matcher.Multiset
 
 import           Criterion.Main
 

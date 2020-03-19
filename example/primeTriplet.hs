@@ -2,7 +2,7 @@
 {-# LANGUAGE TypeApplications #-}
 
 import           Control.Egison
-import           Control.Egison.Matcher.List
+
 import           Data.Numbers.Primes            ( primes )
 
 
