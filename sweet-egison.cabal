@@ -37,9 +37,11 @@ library
     Control.Egison.Matcher.Multiset
     Control.Egison.Matcher.Pair
     Control.Egison.Matcher.Set
+    Control.Egison.Matcher.UnorderedPair
     Control.Monad.Search
     Data.Query
     Data.Query.Pattern.Collection
+    Data.Query.Pattern.Tuple
     Data.Query.QQ
 
   build-depends:

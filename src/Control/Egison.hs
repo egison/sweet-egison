@@ -19,3 +19,4 @@ import           Control.Monad.Search          as X
 import           Data.Query                    as X
 import           Data.Query.QQ                 as X
 import           Data.Query.Pattern.Collection as X
+import           Data.Query.Pattern.Tuple      as X

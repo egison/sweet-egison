@@ -1,12 +1,13 @@
 module Control.Egison.Matcher.Pair
   ( Pair(..)
   , pair
-  , tuple2
   )
 where
 
 import           Control.Egison.Matcher         ( Matcher(..) )
 import           Control.Monad.Search           ( MonadSearch )
+
+import           Data.Query.Pattern.Tuple       ( Tuple2Pattern(..) )
 
 
 newtype Pair a b = Pair (a, b)
@@ -18,10 +19,13 @@ instance (Matcher a, Matcher b) => Matcher (Pair a b) where
   {-# INLINE unwrap #-}
   unwrap (Pair (a, b)) = (unwrap a, unwrap b)
 
+instance Tuple2Pattern (Pair a b) where
+  type Fst (Pair a b) = a
+  type Snd (Pair a b) = b
+
+  {-# INLINABLE tuple2 #-}
+  tuple2 (Pair (x, y)) = pure (x, y)
+
 {-# INLINABLE pair #-}
 pair :: MonadSearch m => Pair a b -> m (a, b)
-pair (Pair (x, y)) = pure (x, y)
-
-{-# INLINABLE tuple2 #-}
-tuple2 :: MonadSearch m => Pair a b -> m (a, b)
-tuple2 = pair
+pair = tuple2
