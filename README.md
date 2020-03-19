@@ -73,7 +73,7 @@ With `DFS`, we can define an intuitive pattern-matching version of `concat` func
 
 ### Non-linear patterns
 
-The non-linear pattern is another powerful pattern-matching facility. It allows us to refer the value bound to variables appear in the left side of the pattern. For example, the following example enumerates (p, p+2) pairs of primes:
+The non-linear pattern is another powerful pattern-matching facility. It allows us to refer the value bound to variables appear in the left side of the pattern. We provide a pattern syntax named value patterns in the form of `#e`. Value pattern matches with targets that are equal to the corresponding expression. For example, the following example enumerates (p, p+2) pairs of primes:
 
 ```haskell
 > import Data.Numbers.Primes ( primes )
