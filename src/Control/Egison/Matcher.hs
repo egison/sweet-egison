@@ -1,11 +1,8 @@
-{-# LANGUAGE ConstraintKinds #-}
 module Control.Egison.Matcher
   ( Matcher
   , Something(..)
-  , EqM(..)
-  , IntegralM(..)
-  , Eql
-  , Integer
+  , Eql(..)
+  , Integer(..)
   )
 where
 
@@ -23,22 +20,19 @@ data Something = Something
 instance Matcher Something a
 
 
-data EqM = EqM
+data Eql = Eql
 
-instance Eq a => Matcher EqM a
+instance Eq a => Matcher Eql a
 
-instance Eq a => ValuePattern EqM a where
+instance Eq a => ValuePattern Eql a where
   value (Tagged a) b | a == b    = pure ()
                      | otherwise = mzero
 
-type Eql = EqM
 
-data IntegralM = IntegralM
+data Integer = Integer
 
-instance Integral a => Matcher IntegralM a
+instance Integral a => Matcher Integer a
 
-instance Integral a => ValuePattern IntegralM a where
+instance Integral a => ValuePattern Integer a where
   value (Tagged a) b | a == b    = pure ()
                      | otherwise = mzero
-
-type Integer = IntegralM
