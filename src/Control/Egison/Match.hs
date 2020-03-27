@@ -17,7 +17,7 @@ import           Control.Monad.Search           ( MonadSearch(..)
                                                 , DFS
                                                 )
 import           Data.Query                     ( Query
-                                                , find
+                                                , query
                                                 )
 
 
@@ -39,7 +39,7 @@ matchAll
   -> matcher
   -> [Query BFS matcher target out]
   -> [out]
-matchAll tgt _ q = collect $ find @_ @matcher (mconcat q) tgt
+matchAll tgt _ q = collect $ query @matcher (mconcat q) tgt
 
 {-# INLINABLE matchDFS #-}
 matchDFS
@@ -59,4 +59,4 @@ matchAllDFS
   -> matcher
   -> [Query DFS matcher target out]
   -> [out]
-matchAllDFS tgt _ q = collect $ find @_ @matcher (mconcat q) tgt
+matchAllDFS tgt _ q = collect $ query @matcher (mconcat q) tgt
