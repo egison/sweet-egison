@@ -3,9 +3,8 @@ module Data.Query.Pattern.Value
   )
 where
 
-import           Control.Monad.Search           ( MonadSearch )
-import           Data.Tagged                    ( Tagged )
+import           Data.Query.Pattern             ( Pattern )
 
 
 class ValuePattern t a where
-  value :: MonadSearch m => Tagged t a -> a -> m ()
+  value :: a -> Pattern t a '[] '[]

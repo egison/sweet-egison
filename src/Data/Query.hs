@@ -5,6 +5,7 @@ module Data.Query
   )
 where
 
+import           Data.Proxy                     ( Proxy(..) )
 import           Control.Monad                  ( mzero )
 import           Control.Applicative            ( Alternative(..)
                                                 , Applicative(..)
@@ -13,18 +14,17 @@ import           Control.Monad.Search           ( MonadSearch
                                                 , BFS
                                                 , DFS
                                                 )
-import           Data.Tagged                    ( Tagged(..) )
 
 
-newtype Query strategy tag tgt out = Query { unQuery :: Tagged tag tgt -> strategy out }
+newtype Query strategy tag tgt out = Query { unQuery :: Proxy tag -> tgt -> strategy out }
 
 instance MonadSearch m => Semigroup (Query m tag tgt out) where
   {-# INLINE (<>) #-}
-  Query a <> Query b = Query $ \x -> a x <|> b x
+  Query a <> Query b = Query $ \p x -> a p x <|> b p x
 
 instance MonadSearch m => Monoid (Query m tag tgt out) where
   {-# INLINABLE mempty #-}
-  mempty = Query $ const mzero
+  mempty = Query $ \_ _ -> mzero
 
 instance MonadSearch m => Functor (Query m tag tgt) where
   {-# INLINABLE fmap #-}
@@ -67,4 +67,4 @@ query
   => Query s tag tgt out
   -> tgt
   -> s out
-query (Query f) tgt = f $ Tagged tgt
+query (Query f) = f Proxy

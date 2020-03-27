@@ -6,10 +6,11 @@ module Data.Query.QQ
 where
 
 -- imports to create 'Name' in compilation
+import           Data.Functor                   ( void )
 import           Control.Monad                  ( MonadPlus(..) )
 import           Control.Monad.Search           ( MonadSearch(..) )
 import           Data.Query                     ( Query(..) )
-import           Data.Tagged                    ( untag )
+import           Data.Query.Pattern             ( ReturnList(..) )
 
 -- main
 import           Data.Maybe                     ( mapMaybe )
@@ -109,25 +110,33 @@ parsePatternExpr haskellMode content = case Pat.parseNonGreedy mode content of
   where mode = ParseMode { haskellMode, fixities = Just listFixities }
 
 
+data TaggedTarget =
+  TaggedTarget { proxy  :: Name
+               , target :: Name
+               }
+
 compilePattern :: Pat.Expr Name Name Exp -> Exp -> Q Exp
 compilePattern pat body = do
-  tgt <- newName "tgt"
+  tgt <- newTaggedTarget
   tr  <- go pat tgt
-  pure . AppE (ConE queryName) . LamE [boundTargetPat pat tgt] $ tr s
+  pure . AppE (ConE queryName) . LamE (boundTargetPats pat tgt) $ tr s
  where
   s = AppE (VarE pureName) body
-  go :: Pat.Expr Name Name Exp -> Name -> Q (Exp -> Exp)
+  go :: Pat.Expr Name Name Exp -> TaggedTarget -> Q (Exp -> Exp)
   go Pat.Wildcard _ = pure id
-  go (Pat.Variable x) t =
-    pure $ \k -> let_ x (AppE (VarE unwrapName) (VarE t)) k
-  go (Pat.Value e) t = pure $ AppE guardExp
+  go (Pat.Variable x) TaggedTarget { target } =
+    pure $ \k -> let_ x (VarE target) k
+  go (Pat.Value e) TaggedTarget { proxy, target } = pure $ AppE guardExp
    where
-    guardExp =
-      AppE (VarE guardedName) (AppE (AppE (VarE $ mkName "value") (VarE t)) e)
-  go (Pat.Predicate e) t = pure $ AppE guardExp
-   where
-    guardExp = AppE (VarE guardedName)
-                    (guard_ (AppE e (AppE (VarE unwrapName) (VarE t))))
+    guardExp = AppE
+      (VarE guardedName)
+      (AppE
+        (VarE 'Data.Functor.void)
+        (AppE (AppE (AppE (VarE $ mkName "value") e) (VarE proxy)) (VarE target)
+        )
+      )
+  go (Pat.Predicate e) TaggedTarget { target } = pure $ AppE guardExp
+    where guardExp = AppE (VarE guardedName) (guard_ (AppE e (VarE target)))
   go (Pat.And p1 p2) t = do
     t1 <- go p1 t
     t2 <- go p2 t
@@ -146,18 +155,27 @@ compilePattern pat body = do
     go (Pattern (mkName "spread") [p2]) t
   go (Pat.Infix n p1 p2) t = go (Pattern n [p1, p2]) t
   go (Pat.Collection ps) t = go (desugarCollection ps) t
-  go (Pat.Tuple      ps) t = go (desugarTuple ps) t
-  go (Pat.Pattern n ps ) t = do
-    xs <- mapM (\p -> (p, ) <$> newName "d") ps
+  go (Pat.Tuple ps) t = go (desugarTuple ps) t
+  go (Pat.Pattern n ps) TaggedTarget { proxy, target } = do
+    xs <- mapM (\p -> (p, ) <$> newTaggedTarget) ps
     tr <- foldrM go' id xs
-    pure $ \k -> AppE (VarE n) (VarE t)
-      `sbind_` LamE [TupP $ map (uncurry boundTargetPat) xs] (tr k)
+    pure $ \k -> AppE (AppE (VarE n) (VarE proxy)) (VarE target)
+      `sbind_` LamE [expandReturnList xs] (tr k)
    where
-    go' (p', t') acc = do
-      f <- go p' t'
+    go' (p, t) acc = do
+      f <- go p t
       pure $ f . acc
-  boundTargetPat Pat.Wildcard _ = WildP
-  boundTargetPat _            x = VarP x
+  boundTargetPats Pat.Wildcard _ = [WildP, WildP]
+  boundTargetPats (Pat.Variable _) TaggedTarget { target } =
+    [WildP, VarP target]
+  boundTargetPats (Pat.Predicate _) TaggedTarget { target } =
+    [WildP, VarP target]
+  boundTargetPats _ TaggedTarget { proxy, target } = [VarP proxy, VarP target]
+  newTaggedTarget  = TaggedTarget <$> newName "tag" <*> newName "tgt"
+  expandReturnList = foldr go' (ConP 'Data.Query.Pattern.Nil [])
+   where
+    go' (p, tgt) acc =
+      ConP 'Data.Query.Pattern.Cons $ boundTargetPats p tgt ++ [acc]
   sbind_ x f = ParensE (UInfixE (ParensE x) (VarE sbindOp) (ParensE f))
   let_ x e1 = LetE [ValD (VarP x) (NormalB e1) []]
   guard_ b =
@@ -168,7 +186,6 @@ compilePattern pat body = do
   pureName    = 'pure
   sbindOp     = '(Control.Monad.Search.>->)
   lnotName    = 'Control.Monad.Search.exclude
-  unwrapName  = 'Data.Tagged.untag
   pureU       = AppE (VarE pureName) (TupE [])
 
 desugarCollection :: [Pat.Expr Name Name Exp] -> Pat.Expr Name Name Exp

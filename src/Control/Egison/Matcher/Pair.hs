@@ -5,9 +5,10 @@ module Control.Egison.Matcher.Pair
 where
 
 import           Control.Egison.Matcher         ( Matcher )
-import           Control.Monad.Search           ( MonadSearch )
+import           Data.Query.Pattern             ( Pattern
+                                                , ReturnList(..)
+                                                )
 import           Data.Query.Pattern.Tuple       ( Tuple2Pattern(..) )
-import           Data.Tagged                    ( Tagged(..) )
 
 
 data Pair m1 m2 = Pair m1 m2
@@ -21,11 +22,10 @@ instance (Matcher m1 tgt1, Matcher m2 tgt2) => Tuple2Pattern (Pair m1 m2) (tgt1,
   type SndTag (Pair m1 m2) = m2
 
   {-# INLINABLE tuple2 #-}
-  tuple2 (Tagged (x, y)) = pure (Tagged x, Tagged y)
+  tuple2 _ (x, y) = pure (x :- y :- Nil)
 
 {-# INLINABLE pair #-}
 pair
-  :: (Matcher m1 tgt1, Matcher m2 tgt2, MonadSearch s)
-  => Tagged (Pair m1 m2) (tgt1, tgt2)
-  -> s (Tagged m1 tgt1, Tagged m2 tgt2)
+  :: (Matcher m1 tgt1, Matcher m2 tgt2)
+  => Pattern (Pair m1 m2) (tgt1, tgt2) '[m1, m2] '[tgt1, tgt2]
 pair = tuple2

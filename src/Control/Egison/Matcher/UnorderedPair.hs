@@ -5,10 +5,11 @@ module Control.Egison.Matcher.UnorderedPair
 where
 
 import           Control.Egison.Matcher         ( Matcher )
-import           Control.Monad.Search           ( MonadSearch )
 import           Control.Monad                  ( MonadPlus(..) )
+import           Data.Query.Pattern             ( Pattern
+                                                , ReturnList(..)
+                                                )
 import           Data.Query.Pattern.Tuple       ( Tuple2Pattern(..) )
-import           Data.Tagged                    ( Tagged(..) )
 
 
 newtype UnorderedPair m = UnorderedPair m
@@ -22,12 +23,9 @@ instance Matcher m tgt => Tuple2Pattern (UnorderedPair m) (tgt, tgt) where
   type SndTag _ = m
 
   {-# INLINABLE tuple2 #-}
-  tuple2 (Tagged (x, y)) =
-    pure (Tagged x, Tagged y) `mplus` pure (Tagged y, Tagged x)
+  tuple2 _ (x, y) = pure (x :- y :- Nil) `mplus` pure (y :- x :- Nil)
 
 {-# INLINABLE upair #-}
 upair
-  :: (Matcher m tgt, MonadSearch s)
-  => Tagged (UnorderedPair m) (tgt, tgt)
-  -> s (Tagged m tgt, Tagged m tgt)
+  :: Matcher m tgt => Pattern (UnorderedPair m) (tgt, tgt) '[m, m] '[tgt, tgt]
 upair = tuple2

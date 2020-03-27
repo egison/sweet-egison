@@ -3,8 +3,7 @@ module Data.Query.Pattern.Tuple
   )
 where
 
-import           Control.Monad.Search           ( MonadSearch )
-import           Data.Tagged                    ( Tagged )
+import           Data.Query.Pattern             ( Pattern )
 
 
 class Tuple2Pattern t a where
@@ -12,4 +11,4 @@ class Tuple2Pattern t a where
   type Snd a
   type FstTag t
   type SndTag t
-  tuple2 :: MonadSearch m => Tagged t a -> m (Tagged (FstTag t) (Fst a), Tagged (SndTag t) (Snd a))
+  tuple2 :: Pattern t a '[FstTag t, SndTag t] '[Fst a, Snd a]
