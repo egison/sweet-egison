@@ -24,7 +24,7 @@ You may notice that `matchAll` returns a list. In our library, pattern matching 
 [2,4,6,8,10,12,14,16,18,20]
 ```
 
-`++` is the *join* operator that decomposes a list into an initial prefix and the remaining suffix. With this, we can implement `map` with pattern matching:
+`++` is the *join* operator that decomposes a list into an initial prefix and the remaining suffix. We can implement `map` with pattern matching using this:
 
 ```haskell
 > map f xs = matchAll xs (List Something) [[mc| _ ++ $x : _ -> f x |]]
@@ -32,7 +32,7 @@ You may notice that `matchAll` returns a list. In our library, pattern matching 
 [2,4,6]
 ```
 
-Note that there is no recursion or `fold`s in our `map` definition! An intuition of `map` function, that applies the function to all elements, are expressed directly in the pattern expression.
+Note that we don't see any recursions or `fold`s in our `map` definition! An intuition of `map` function, that applies the function to all elements, are expressed directly in the pattern expression.
 
 ### Matchers
 
@@ -43,11 +43,11 @@ Because our pattern matching can return many results, we can use it to decompose
 [(1,[2,3]),(2,[1,3]),(3,[1,2])]
 ```
 
-Note that we use `Multiset Something` instead of `List Something` here to match the target `[1, 2, 3]` as a multiset. These parameters such as `Multiset Something`, `List (List Something)`, and `Something` are called *matchers* and specify pattern-matching methods. Given a matcher `m`, `Multiset m` is a matcher for multisets that matches its elements with `m`. `Something` is a matcher that provides simple matching methods for an arbitrary value.
+We use `Multiset Something` instead of `List Something` here to match the target `[1, 2, 3]` as a multiset. These parameters such as `Multiset Something`, `List (List Something)`, and `Something` are called *matchers* and specify pattern-matching methods. Given a matcher `m`, `Multiset m` is a matcher for multisets that matches its elements with `m`. `Something` is a matcher that provides simple matching methods for an arbitrary value.
 
 ### Controlling matching strategy
 
-Some pattern matchings has infinitely many results and `matchAll` is designed to be able to enumerate all the results. For this purpose, `matchAll` traverses a search tree for pattern matching in the breadth-first order. The following example illustrates this:
+Some pattern matching have infinitely many results and `matchAll` is designed to be able to enumerate all the results. For this purpose, `matchAll` traverses a search tree for pattern matching in the breadth-first order. The following example illustrates this:
 
 ```haskell
 > take 10 $ matchAll [1 ..] (Set Something) [[mc| $x : $y : _ -> (x, y) |]]
@@ -73,7 +73,7 @@ With `matchAllDFS`, we can define an intuitive pattern-matching version of `conc
 
 ### Non-linear patterns
 
-The non-linear pattern is another powerful pattern-matching facility. It allows us to refer the value bound to variables appear in the left side of the pattern. We provide a pattern syntax named value patterns in the form of `#e`. The `Eql` matcher enables value patterns to match with targets that are equal to the corresponding expression. For example, the following example enumerates (p, p+2) pairs of primes:
+The non-linear pattern is another powerful pattern-matching feature. It allows us to refer the value bound to variables appear in the left side of the pattern. We provide a pattern syntax named value patterns in the form of `#e`. The `Eql` matcher enables value patterns to match with targets that are equal to the corresponding expression. For example, the following example enumerates (p, p+2) pairs of primes:
 
 ```haskell
 > import Data.Numbers.Primes ( primes )
@@ -81,7 +81,7 @@ The non-linear pattern is another powerful pattern-matching facility. It allows 
 [(3,5),(5,7),(11,13),(17,19),(29,31),(41,43),(59,61),(71,73),(101,103),(107,109)]
 ```
 
-We can implement a pattern-matching version of set functions such as `member` and `intersect` in a declarative way using non-linear patterns. Note that match clauses are monoids and can be concatenated using `<>`.
+We can implement a pattern-matching version of set functions such as `member` and `intersect` in a declarative way using non-linear patterns. Match clauses are monoids and can be concatenated using `<>`.
 
 ```haskell
 > member x xs = matchDFS xs (Multiset Eql) [[mc| #x : _ -> True |], [mc| _ -> False |]]
@@ -94,13 +94,13 @@ True
 
 ### Further readings
 
-Some practical applications of PMO such as [SAT solver](https://github.com/egison/sweet-egison/blob/master/example/cdcl.hs) are placed under [example/](https://github.com/egison/sweet-egison/blob/master/example/). Details of Egison, the original PMO language implementation, can be found on [https://www.egison.org/](https://www.egison.org/) or in [1]. You can learn more about pattern-match-oriented programming style in [2].
+Some practical applications of PMO such as a [SAT solver](https://github.com/egison/sweet-egison/blob/master/example/cdcl.hs) are placed under [example/](https://github.com/egison/sweet-egison/blob/master/example/). Detailed information of Egison, the original PMO language implementation, can be found on [https://www.egison.org/](https://www.egison.org/) or in [1]. You can learn more about pattern-match-oriented programming style in [2].
 
 ## Implementation / Difference from miniEgison
 
 [miniEgison](https://github.com/egison/egison-haskell) is also a Haskell library that implements Egison pattern matching. The main difference from [miniEgison](https://github.com/egison/egison-haskell) is that sweet-egison translates pattern matching into Haskell control expressions (shallow embedding), where [miniEgison](https://github.com/egison/egison-haskell) translates it into Haskell data expressions (deep embedding).
 
-Our quasi-quoter `mc` translates match clauses into functions that take a target and return a non-deterministic computation as `MonadPlus`-like monadic expression. As `MonadPlus` can express backtracking computation, we can perform efficient backtracking pattern matching which is essential to PMO programming on it.
+Our quasi-quoter `mc` translates match clauses into functions that take a target and return a non-deterministic computation as `MonadPlus`-like monadic expression. As `MonadPlus` can express backtracking computation, we can perform efficient backtracking pattern matching that is essential to PMO programming on it.
 
 For example, `[mc| $xs ++ $x : $ys -> (xs, x, ys) |]` is translated as follows:
 
