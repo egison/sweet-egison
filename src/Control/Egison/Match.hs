@@ -6,7 +6,8 @@
 module Control.Egison.Match
   ( matchAll
   , match
-  , SearchStrategy
+  , matchAllDFS
+  , matchDFS
   )
 where
 
@@ -19,35 +20,43 @@ import           Data.Query                     ( Query
                                                 , find
                                                 )
 
--- | Class that represents search strategies used in pattern matching.
--- In the view of implementors, this is a helper class to default search strategy to BFS in 'match' and 'matchAll'.
---
--- When the strategy is explicitly specified like @'match' \@BFS@, this class appears as @'SearchStrategy' 'BFS'@ in the context. This constraint matches to @'SearchStrategy' a@ and @'SearchStrategy' 'BFS'@ instances. The latter is more specific so would be chosen. @'SearchStrategy' 'DFS'@ also typechecks in the similar way.
---
--- When the strategy is not specified, the parameter is left uninstantiated as @'SearchStrategy' a0@. This constraint only matches to @'SearchStrategy' a@ instance and GHC will choose it since it is @INCOHERENT@. Once the instance is chosen, the constraint @a ~ 'BFS'@ is introduced and @a@ is defaulted to 'BFS'. @INCOHERENT@ is necessary for GHC to cut short in the decision. Without @INCOHERENT@, GHC looks for further instances that /unify/ with @SearchStrategy a0@ but not /match/ it and fails because of them.
---
--- For details, see [the relevant section in GHC User's Guide](https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/glasgow_exts.html#overlapping-instances).
-class MonadSearch m => SearchStrategy m
-instance {-# INCOHERENT #-} a ~ BFS => SearchStrategy a
-instance SearchStrategy BFS
-instance SearchStrategy DFS
 
 {-# INLINABLE match #-}
 match
-  :: forall strategy matcher target out
-   . (Matcher matcher target, SearchStrategy strategy)
+  :: forall matcher target out
+   . Matcher matcher target
   => target
   -> matcher
-  -> Query strategy matcher target out
+  -> Query BFS matcher target out
   -> out
 match tgt m = head . matchAll tgt m
 
 {-# INLINABLE matchAll #-}
 matchAll
-  :: forall strategy matcher target out
-   . (Matcher matcher target, SearchStrategy strategy)
+  :: forall matcher target out
+   . Matcher matcher target
   => target
   -> matcher
-  -> Query strategy matcher target out
+  -> Query BFS matcher target out
   -> [out]
-matchAll tgt _ q = collect $ find @strategy @matcher q tgt
+matchAll tgt _ q = collect $ find @_ @matcher q tgt
+
+{-# INLINABLE matchDFS #-}
+matchDFS
+  :: forall matcher target out
+   . Matcher matcher target
+  => target
+  -> matcher
+  -> Query DFS matcher target out
+  -> out
+matchDFS tgt m = head . matchAllDFS tgt m
+
+{-# INLINABLE matchAllDFS #-}
+matchAllDFS
+  :: forall matcher target out
+   . Matcher matcher target
+  => target
+  -> matcher
+  -> Query DFS matcher target out
+  -> [out]
+matchAllDFS tgt _ q = collect $ find @_ @matcher q tgt
