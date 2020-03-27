@@ -8,7 +8,7 @@ module Control.Egison.Match
   )
 where
 
-import           Control.Egison.Matcher         ( Matcher(..) )
+import           Control.Egison.Matcher         ( Matcher )
 import           Control.Monad.Search           ( MonadSearch(..)
                                                 , BFS
                                                 , DFS
@@ -32,16 +32,16 @@ instance SearchStrategy DFS
 
 {-# INLINABLE match #-}
 match
-  :: forall strategy matcher out
-   . (Matcher matcher, SearchStrategy strategy)
-  => Target matcher
-  -> forall m . m ~ matcher => Query strategy matcher out -> out
+  :: forall strategy matcher target out
+   . (Matcher matcher target, SearchStrategy strategy)
+  => target
+  -> forall m . m ~ matcher => Query strategy matcher target out -> out
 match tgt = head . matchAll tgt
 
 {-# INLINABLE matchAll #-}
 matchAll
-  :: forall strategy matcher out
-   . (Matcher matcher, SearchStrategy strategy)
-  => Target matcher
-  -> forall m . m ~ matcher => Query strategy matcher out -> [out]
-matchAll tgt q = collect . find q $ wrap tgt
+  :: forall strategy matcher target out
+   . (Matcher matcher target, SearchStrategy strategy)
+  => target
+  -> forall m . m ~ matcher => Query strategy matcher target out -> [out]
+matchAll tgt q = collect $ find q tgt

@@ -3,29 +3,25 @@ module Control.Egison.Matcher.Set
   )
 where
 
-import           Control.Egison.Matcher         ( Matcher(..) )
+import           Control.Egison.Matcher         ( Matcher )
 import           Control.Monad                  ( MonadPlus(..) )
-
 import           Data.Query.Pattern.Collection  ( CollectionPattern(..) )
+import           Data.Tagged                    ( Tagged(..) )
 
 
-newtype Set a = Set [a]
+newtype Set m = Set m
 
-instance Matcher a => Matcher (Set a) where
-  type Target (Set a) = [Target a]
-  {-# INLINE wrap #-}
-  wrap x = Set $ map wrap x
-  {-# INLINE unwrap #-}
-  unwrap (Set x) = map unwrap x
+instance Matcher m tgt => Matcher (Set m) [tgt]
 
-instance CollectionPattern (Set a) where
-  type Element (Set a) = a
+instance Matcher m tgt => CollectionPattern (Set m) [tgt] where
+  type Elem [tgt] = tgt
+  type ElemTag (Set m) = m
   {-# INLINABLE nil #-}
-  nil (Set []) = pure ()
-  nil _        = mzero
+  nil (Tagged []) = pure ()
+  nil _           = mzero
   {-# INLINABLE cons #-}
-  cons (Set xs) = foldr go mzero xs
-    where go x acc = pure (x, Set xs) `mplus` acc
+  cons (Tagged xs) = foldr go mzero xs
+    where go x acc = pure (Tagged x, Tagged xs) `mplus` acc
 -- TODO: Implement
   join   = undefined
   spread = undefined

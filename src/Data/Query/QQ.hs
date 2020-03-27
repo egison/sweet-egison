@@ -6,10 +6,10 @@ module Data.Query.QQ
 where
 
 -- imports to create 'Name' in compilation
-import           Control.Egison.Matcher         ( Matcher(..) )
 import           Control.Monad                  ( MonadPlus(..) )
 import           Control.Monad.Search           ( MonadSearch(..) )
 import           Data.Query                     ( Query(..) )
+import           Data.Tagged                    ( untag )
 
 -- main
 import           Data.Maybe                     ( mapMaybe )
@@ -122,8 +122,8 @@ compilePattern pat body = do
     pure $ \k -> let_ x (AppE (VarE unwrapName) (VarE t)) k
   go (Pat.Value e) t = pure $ AppE guardExp
    where
-    guardExp = AppE (VarE guardedName)
-                    (UInfixE (AppE (VarE wrapName) e) (VarE eqOp) (VarE t))
+    guardExp =
+      AppE (VarE guardedName) (AppE (AppE (VarE $ mkName "value") (VarE t)) e)
   go (Pat.Predicate e) t = pure $ AppE guardExp
    where
     guardExp =
@@ -164,11 +164,9 @@ compilePattern pat body = do
   guardedName = 'Control.Monad.Search.guarded
   plusName    = 'Control.Monad.mplus
   pureName    = 'pure
-  eqOp        = '(==)
   sbindOp     = '(Control.Monad.Search.>->)
   lnotName    = 'Control.Monad.Search.exclude
-  unwrapName  = 'Control.Egison.Matcher.unwrap
-  wrapName    = 'Control.Egison.Matcher.wrap
+  unwrapName  = 'Data.Tagged.untag
   pureU       = AppE (VarE pureName) (TupE [])
 
 desugarCollection :: [Pat.Expr Name Name Exp] -> Pat.Expr Name Name Exp

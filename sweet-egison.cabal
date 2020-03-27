@@ -46,6 +46,7 @@ library
     Data.Query
     Data.Query.Pattern.Collection
     Data.Query.Pattern.Tuple
+    Data.Query.Pattern.Value
     Data.Query.QQ
 
   build-depends:
@@ -55,6 +56,7 @@ library
     , haskell-src-exts
     , haskell-src-meta
     , logict                      ^>=0.7.0
+    , tagged
     , template-haskell
     , transformers
 
@@ -71,6 +73,7 @@ library
     FlexibleInstances
     GeneralizedNewtypeDeriving
     LambdaCase
+    MultiParamTypeClasses
     NamedFieldPuns
     StandaloneDeriving
     TupleSections
