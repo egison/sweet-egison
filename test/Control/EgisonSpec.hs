@@ -16,28 +16,37 @@ import           Data.Numbers.Primes            ( primes )
 
 
 pmap :: (a -> b) -> [a] -> [b]
-pmap f xs = matchAll @DFS xs @(List Something) [q| _ ++ $x : _ -> f x |]
+pmap f xs = matchAll @DFS xs (List Something) [q| _ ++ $x : _ -> f x |]
 
 pmember :: Eq a => a -> [a] -> Bool
 pmember x xs =
-  match @DFS xs @(Multiset EqM) $ [q| #x : _ -> True |] <> [q| _ -> False |]
+  match @DFS xs (Multiset EqM) $ [q| #x : _ -> True |] <> [q| _ -> False |]
 
 test_list :: [TestTree]
 test_list =
   [ testCase "cons pattern for list"
     $ assertEqual "simple" [(1, [2, 3])]
-    $ matchAll @BFS [1, 2, 3] @(List IntegralM) [q|
+    $ matchAll @BFS
+        [1, 2, 3]
+        (List IntegralM)
+        [q|
         $x : $xs -> (x, xs)
       |]
   , testCase "cons pattern for list (infinite)"
     $ assertEqual "simple" [1]
-    $ matchAll @BFS [1 ..] @(List IntegralM) [q|
+    $ matchAll @BFS
+        [1 ..]
+        (List IntegralM)
+        [q|
         $x : _ -> x
       |]
   , testCase "join pattern for list"
     $ assertEqual "length" 6
     $ length
-    $ matchAll @BFS [1 .. 5] @(List IntegralM) [q|
+    $ matchAll @BFS
+        [1 .. 5]
+        (List IntegralM)
+        [q|
         $xs ++ $ys -> (xs, ys)
       |]
   , testCase "'map' defined using matchAll"
@@ -53,7 +62,10 @@ test_multiset :: [TestTree]
 test_multiset =
   [ testCase "cons pattern for multiset"
       $ assertEqual "simple" [(1, [2, 3]), (2, [1, 3]), (3, [1, 2])]
-      $ matchAll @BFS [1, 2, 3] @(Multiset IntegralM) [q|
+      $ matchAll @BFS
+          [1, 2, 3]
+          (Multiset IntegralM)
+          [q|
           $x : $xs -> (x, xs)
         |]
   ]
@@ -75,7 +87,10 @@ test_infinite =
         , (2, 4)
         ]
     $ take 10
-    $ matchAll @BFS [1 ..] @(Multiset IntegralM) [q|
+    $ matchAll @BFS
+        [1 ..]
+        (Multiset IntegralM)
+        [q|
         $x : $y : _ -> (x, y)
       |]
   , testCase "set bfs order"
@@ -93,7 +108,10 @@ test_infinite =
         , (2, 3)
         ]
     $ take 10
-    $ matchAll @BFS [1 ..] @(Set IntegralM) [q|
+    $ matchAll @BFS
+        [1 ..]
+        (Set IntegralM)
+        [q|
         $x : $y : _ -> (x, y)
       |]
   , testCase "use bfs if omitted"
@@ -111,7 +129,10 @@ test_infinite =
         , (2, 3)
         ]
     $ take 10
-    $ matchAll [1 ..] @(Set IntegralM) [q|
+    $ matchAll
+        [1 ..]
+        (Set IntegralM)
+        [q|
         $x : $y : _ -> (x, y)
       |]
   , testCase "set dfs order"
@@ -129,7 +150,10 @@ test_infinite =
         , (1, 10)
         ]
     $ take 10
-    $ matchAll @DFS [1 ..] @(Set IntegralM) [q|
+    $ matchAll @DFS
+        [1 ..]
+        (Set IntegralM)
+        [q|
         $x : $y : _ -> (x, y)
       |]
   ]
@@ -138,16 +162,20 @@ test_predicate :: [TestTree]
 test_predicate =
   [ testCase "predicate pattern"
       $ assertEqual "simple" [2, 4, 6, 8, 10]
-      $ matchAll @BFS [1 .. 10] @(Multiset IntegralM) [q|
+      $ matchAll @BFS
+          [1 .. 10]
+          (Multiset IntegralM)
+          [q|
           (?(\x -> mod x 2 == 0) & $x) : _ -> x
         |]
   ]
 
 test_not :: [TestTree]
 test_not =
-  [ testCase "not pattern"
-      $ assertEqual "simple" [1, 3, 2]
-      $ matchAll @BFS [1, 1, 2, 3, 1, 3, 2] @(List IntegralM) [q|
+  [ testCase "not pattern" $ assertEqual "simple" [1, 3, 2] $ matchAll @BFS
+      [1, 1, 2, 3, 1, 3, 2]
+      (List IntegralM)
+      [q|
           _ ++ $x : !(_ ++ #x : _) -> x
         |]
   ]
@@ -169,13 +197,19 @@ test_prime =
         , (107, 109)
         ]
     $ take 10
-    $ matchAll @BFS primes @(List IntegralM) [q|
+    $ matchAll @BFS
+        primes
+        (List IntegralM)
+        [q|
         _ ++ $p : #(p+2) : _ -> (p, p+2)
       |]
   , testCase "(p, p+6)"
     $ assertEqual "simple" [(5, 11), (7, 13), (11, 17), (13, 19), (17, 23)]
     $ take 5
-    $ matchAll @BFS primes @(List IntegralM) [q|
+    $ matchAll @BFS
+        primes
+        (List IntegralM)
+        [q|
         _ ++ $p : _ ++ #(p+6) : _ -> (p, p+6)
       |]
   , testCase "prime triplets"
@@ -193,7 +227,10 @@ test_prime =
         , (97 , 101, 103)
         ]
     $ take 10
-    $ matchAll @BFS primes @(List IntegralM) [q|
+    $ matchAll @BFS
+        primes
+        (List IntegralM)
+        [q|
         _ ++ $p : ($m & (#(p+2) | #(p+4))) : #(p+6) : _ -> (p, m, p+6)
       |]
   ]

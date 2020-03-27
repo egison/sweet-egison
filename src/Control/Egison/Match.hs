@@ -1,4 +1,6 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE RankNTypes #-}
 
 module Control.Egison.Match
@@ -35,13 +37,17 @@ match
   :: forall strategy matcher target out
    . (Matcher matcher target, SearchStrategy strategy)
   => target
-  -> forall m . m ~ matcher => Query strategy matcher target out -> out
-match tgt = head . matchAll tgt
+  -> matcher
+  -> Query strategy matcher target out
+  -> out
+match tgt m = head . matchAll tgt m
 
 {-# INLINABLE matchAll #-}
 matchAll
   :: forall strategy matcher target out
    . (Matcher matcher target, SearchStrategy strategy)
   => target
-  -> forall m . m ~ matcher => Query strategy matcher target out -> [out]
-matchAll tgt q = collect $ find q tgt
+  -> matcher
+  -> Query strategy matcher target out
+  -> [out]
+matchAll tgt _ q = collect $ find @strategy @matcher q tgt
