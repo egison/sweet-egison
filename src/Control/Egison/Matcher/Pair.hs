@@ -4,28 +4,28 @@ module Control.Egison.Matcher.Pair
   )
 where
 
-import           Control.Egison.Matcher         ( Matcher(..) )
+import           Control.Egison.Matcher         ( Matcher )
 import           Control.Monad.Search           ( MonadSearch )
-
 import           Data.Query.Pattern.Tuple       ( Tuple2Pattern(..) )
+import           Data.Tagged                    ( Tagged(..) )
 
 
-newtype Pair a b = Pair (a, b)
+data Pair m1 m2 = Pair m1 m2
 
-instance (Matcher a, Matcher b) => Matcher (Pair a b) where
-  type Target (Pair a b) = (Target a, Target b)
-  {-# INLINE wrap #-}
-  wrap (a, b) = Pair (wrap a, wrap b)
-  {-# INLINE unwrap #-}
-  unwrap (Pair (a, b)) = (unwrap a, unwrap b)
+instance (Matcher m1 tgt1, Matcher m2 tgt2) => Matcher (Pair m1 m2) (tgt1, tgt2)
 
-instance Tuple2Pattern (Pair a b) where
-  type Fst (Pair a b) = a
-  type Snd (Pair a b) = b
+instance (Matcher m1 tgt1, Matcher m2 tgt2) => Tuple2Pattern (Pair m1 m2) (tgt1, tgt2) where
+  type Fst (tgt1, tgt2) = tgt1
+  type Snd (tgt1, tgt2) = tgt2
+  type FstTag (Pair m1 m2) = m1
+  type SndTag (Pair m1 m2) = m2
 
   {-# INLINABLE tuple2 #-}
-  tuple2 (Pair (x, y)) = pure (x, y)
+  tuple2 (Tagged (x, y)) = pure (Tagged x, Tagged y)
 
 {-# INLINABLE pair #-}
-pair :: MonadSearch m => Pair a b -> m (a, b)
+pair
+  :: (Matcher m1 tgt1, Matcher m2 tgt2, MonadSearch s)
+  => Tagged (Pair m1 m2) (tgt1, tgt2)
+  -> s (Tagged m1 tgt1, Tagged m2 tgt2)
 pair = tuple2

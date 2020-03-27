@@ -4,29 +4,30 @@ module Control.Egison.Matcher.UnorderedPair
   )
 where
 
-import           Control.Egison.Matcher         ( Matcher(..) )
+import           Control.Egison.Matcher         ( Matcher )
 import           Control.Monad.Search           ( MonadSearch )
 import           Control.Monad                  ( MonadPlus(..) )
-
 import           Data.Query.Pattern.Tuple       ( Tuple2Pattern(..) )
+import           Data.Tagged                    ( Tagged(..) )
 
 
-newtype UnorderedPair a = UnorderedPair (a, a)
+newtype UnorderedPair m = UnorderedPair m
 
-instance Matcher a => Matcher (UnorderedPair a) where
-  type Target (UnorderedPair a) = (Target a, Target a)
-  {-# INLINE wrap #-}
-  wrap (a, b) = UnorderedPair (wrap a, wrap b)
-  {-# INLINE unwrap #-}
-  unwrap (UnorderedPair (a, b)) = (unwrap a, unwrap b)
+instance Matcher m tgt => Matcher (UnorderedPair m) (tgt, tgt)
 
-instance Tuple2Pattern (UnorderedPair a) where
-  type Fst (UnorderedPair a) = a
-  type Snd (UnorderedPair a) = a
+instance Matcher m tgt => Tuple2Pattern (UnorderedPair m) (tgt, tgt) where
+  type Fst _ = tgt
+  type Snd _ = tgt
+  type FstTag _ = m
+  type SndTag _ = m
 
   {-# INLINABLE tuple2 #-}
-  tuple2 (UnorderedPair (x, y)) = pure (x, y) `mplus` pure (y, x)
+  tuple2 (Tagged (x, y)) =
+    pure (Tagged x, Tagged y) `mplus` pure (Tagged y, Tagged x)
 
 {-# INLINABLE upair #-}
-upair :: MonadSearch m => UnorderedPair a -> m (a, a)
+upair
+  :: (Matcher m tgt, MonadSearch s)
+  => Tagged (UnorderedPair m) (tgt, tgt)
+  -> s (Tagged m tgt, Tagged m tgt)
 upair = tuple2

@@ -12,22 +12,22 @@ The [sweet-egison](https://hackage.haskell.org/package/sweet-egison) is a shallo
 We code the equivalent pattern match of `case [1, 2, 3] of x : xs -> (x, xs)` in this library as follows:
 
 ```haskell
-> matchAll [1, 2, 3] @(List (M Int)) [q| $x : $xs -> (x, xs) |]
+> matchAll [1, 2, 3] (List Something) [[mc| $x : $xs -> (x, xs) |]]
 [(1,[2,3])]
 ```
 
-Here, we can only observe the small syntactic difference in pattern expressions: the variable bindings are prefixed with `$`. (We'll come back to `@(List (M Int))` later.)
+Here, we can only observe the small syntactic difference in pattern expressions: the variable bindings are prefixed with `$`. (We'll come back to `List Something` later.)
 You may notice that `matchAll` returns a list. In our library, pattern matching can return many results. See the following example that doubles all elements in a list:
 
 ```haskell
-> take 10 $ matchAll [1 ..] @(List (M Int)) [q| _ ++ $x : _ -> x * 2 |]
+> take 10 $ matchAll [1 ..] (List Something) [[mc| _ ++ $x : _ -> x * 2 |]]
 [2,4,6,8,10,12,14,16,18,20]
 ```
 
 `++` is the *join* operator that decomposes a list into an initial prefix and the remaining suffix. With this, we can implement `map` with pattern matching:
 
 ```haskell
-> map f xs = matchAll xs @(List (M _)) [q| _ ++ $x : _ -> f x |]
+> map f xs = matchAll xs (List Something) [[mc| _ ++ $x : _ -> f x |]]
 > map (*2) [1,2,3]
 [2,4,6]
 ```
@@ -39,55 +39,55 @@ Note that there is no recursion or `fold`s in our `map` definition! An intuition
 Because our pattern matching can return many results, we can use it to decompose *non-free data types* such as multisets and sets. For example:
 
 ```haskell
-> matchAll [1, 2, 3] @(Multiset (M Int)) [q| $x : $xs -> (x, xs) |]
+> matchAll [1, 2, 3] (Multiset Something) [[mc| $x : $xs -> (x, xs) |]]
 [(1,[2,3]),(2,[1,3]),(3,[1,2])]
 ```
 
-Note that we use `@(Multiset (M Int))` instead of `@(List (M Int))` here to match the target `[1, 2, 3]` as a multiset of `Int`s. These parameters such as `Multiset (M Int)`, `List (List (M Int))`, and `M Int` are called *matchers* and specify pattern-matching methods. Given a matcher `m`, `Multiset m` is a matcher for multisets that matches its elements with `m`. `M t` is a matcher that provides simple matching methods for values of type `t`.
+Note that we use `Multiset Something` instead of `List Something` here to match the target `[1, 2, 3]` as a multiset. These parameters such as `Multiset Something`, `List (List Something)`, and `Something` are called *matchers* and specify pattern-matching methods. Given a matcher `m`, `Multiset m` is a matcher for multisets that matches its elements with `m`. `Something` is a matcher that provides simple matching methods for an arbitrary value.
 
 ### Controlling matching strategy
 
 Some pattern matchings has infinitely many results and `matchAll` is designed to be able to enumerate all the results. For this purpose, `matchAll` traverses a search tree for pattern matching in the breadth-first order. The following example illustrates this:
 
 ```haskell
-> take 10 $ matchAll [1 ..] @(Set (M Int)) [q| $x : $y : _ -> (x, y) |]
+> take 10 $ matchAll [1 ..] (Set Something) [[mc| $x : $y : _ -> (x, y) |]]
 [(1,1),(2,1),(1,2),(3,1),(1,3),(2,2),(1,4),(4,1),(1,5),(2,3)]
 ```
 
-We can specify a matching strategy explicitly to make `matchAll` traverse a search tree in the depth-first order. In the following example, `@DFS` is added to use the depth-first search.
+We can use the depth-first search with `matchAllDFS`.
 
 ```haskell
-> take 10 $ matchAll @DFS [1 ..] @(Set (M Int)) [q| $x : $y : _ -> (x, y) |]
+> take 10 $ matchAllDFS [1 ..] (Set Something) [[mc| $x : $y : _ -> (x, y) |]]
 [(1,1),(1,2),(1,3),(1,4),(1,5),(1,6),(1,7),(1,8),(1,9),(1,10)]
 ```
 
-In most cases, `DFS` is faster than the default breadth-first search strategy. It is recommended to always use `DFS` if it is OK to do so.
+In most cases, the depth-first search is faster than the default breadth-first search strategy. It is recommended to always use `matchAllDFS` if it is OK to do so.
 
-With `DFS`, we can define an intuitive pattern-matching version of `concat` function on lists.
+With `matchAllDFS`, we can define an intuitive pattern-matching version of `concat` function on lists.
 
 ```haskell
-> concat xs = matchAll @DFS xs @(List (List (M _))) [q| _ ++ (_ ++ $x : _) : _ -> x |]
+> concat xs = matchAllDFS xs (List (List Something)) [[mc| _ ++ (_ ++ $x : _) : _ -> x |]]
 > concat [[1,2], [3,4,5]]
 [1,2,3,4,5]
 ```
 
 ### Non-linear patterns
 
-The non-linear pattern is another powerful pattern-matching facility. It allows us to refer the value bound to variables appear in the left side of the pattern. We provide a pattern syntax named value patterns in the form of `#e`. Value pattern matches with targets that are equal to the corresponding expression. For example, the following example enumerates (p, p+2) pairs of primes:
+The non-linear pattern is another powerful pattern-matching facility. It allows us to refer the value bound to variables appear in the left side of the pattern. We provide a pattern syntax named value patterns in the form of `#e`. The `Eql` matcher enables value patterns to match with targets that are equal to the corresponding expression. For example, the following example enumerates (p, p+2) pairs of primes:
 
 ```haskell
 > import Data.Numbers.Primes ( primes )
-> take 10 $ matchAll primes @(List (M Int)) [q| _ ++ $p : #(p + 2) : _ -> (p, p+2) |]
+> take 10 $ matchAll primes (List Eql) [[mc| _ ++ $p : #(p + 2) : _ -> (p, p+2) |]]
 [(3,5),(5,7),(11,13),(17,19),(29,31),(41,43),(59,61),(71,73),(101,103),(107,109)]
 ```
 
 We can implement a pattern-matching version of set functions such as `member` and `intersect` in a declarative way using non-linear patterns. Note that match clauses are monoids and can be concatenated using `<>`.
 
 ```haskell
-> member x xs = match @DFS xs @(Multiset (M _)) $ [q| #x : _ -> True |] <> [q| _ -> False |]
+> member x xs = matchDFS xs (Multiset Eql) [[mc| #x : _ -> True |], [mc| _ -> False |]]
 > member 1 [3,4,1,4]
 True
-> intersect xs ys = matchAll @DFS (xs, ys) @(Pair (Set (M _) (Set (M _)))) [q| ($x : _, #x : _) -> x |]
+> intersect xs ys = matchAllDFS (xs, ys) (Pair (Set Eql) (Set Eql)) [[mc| ($x : _, #x : _) -> x |]]
 > intersect [1,2,3] [4,5,3,2]
 [2,3]
 ```
@@ -100,9 +100,9 @@ Some practical applications of PMO such as [SAT solver](https://github.com/egiso
 
 [miniEgison](https://github.com/egison/egison-haskell) is also a Haskell library that implements Egison pattern matching. The main difference from [miniEgison](https://github.com/egison/egison-haskell) is that sweet-egison translates pattern matching into Haskell control expressions (shallow embedding), where [miniEgison](https://github.com/egison/egison-haskell) translates it into Haskell data expressions (deep embedding).
 
-Our quasi-quoter `q` translates match clauses into functions that take a target and return a non-deterministic computation as `MonadPlus`-like monadic expression. As `MonadPlus` can express backtracking computation, we can perform efficient backtracking pattern matching which is essential to PMO programming on it.
+Our quasi-quoter `mc` translates match clauses into functions that take a target and return a non-deterministic computation as `MonadPlus`-like monadic expression. As `MonadPlus` can express backtracking computation, we can perform efficient backtracking pattern matching which is essential to PMO programming on it.
 
-For example, `[q| $xs ++ $x : $ys -> (xs, x, ys) |]` is translated as follows:
+For example, `[mc| $xs ++ $x : $ys -> (xs, x, ys) |]` is translated as follows:
 
 ```haskell
 \tgt ->

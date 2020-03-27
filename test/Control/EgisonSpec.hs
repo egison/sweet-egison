@@ -8,6 +8,7 @@ module Control.EgisonSpec
   )
 where
 
+import           Prelude                 hiding ( Integer )
 import           Control.Egison
 
 import           Test.Tasty
@@ -16,30 +17,24 @@ import           Data.Numbers.Primes            ( primes )
 
 
 pmap :: (a -> b) -> [a] -> [b]
-pmap f xs = matchAll @DFS xs @(List (M _)) [q| _ ++ $x : _ -> f x |]
+pmap f xs = matchAllDFS xs (List Something) [[mc| _ ++ $x : _ -> f x |]]
 
 pmember :: Eq a => a -> [a] -> Bool
 pmember x xs =
-  match @DFS xs @(Multiset (M _)) $ [q| #x : _ -> True |] <> [q| _ -> False |]
+  matchDFS xs (Multiset Eql) [[mc| #x : _ -> True |], [mc| _ -> False |]]
 
 test_list :: [TestTree]
 test_list =
   [ testCase "cons pattern for list"
     $ assertEqual "simple" [(1, [2, 3])]
-    $ matchAll @BFS [1, 2, 3] @(List (M Int)) [q|
-        $x : $xs -> (x, xs)
-      |]
+    $ matchAll [1, 2, 3] (List Integer) [[mc| $x : $xs -> (x, xs) |]]
   , testCase "cons pattern for list (infinite)"
     $ assertEqual "simple" [1]
-    $ matchAll @BFS [1 ..] @(List (M Int)) [q|
-        $x : _ -> x
-      |]
+    $ matchAll [1 ..] (List Integer) [[mc| $x : _ -> x |]]
   , testCase "join pattern for list"
     $ assertEqual "length" 6
     $ length
-    $ matchAll @BFS [1 .. 5] @(List (M Int)) [q|
-        $xs ++ $ys -> (xs, ys)
-      |]
+    $ matchAll [1 .. 5] (List Integer) [[mc| $xs ++ $ys -> (xs, ys) |]]
   , testCase "'map' defined using matchAll"
     $ assertEqual "simple" [2, 4, 6]
     $ take 3
@@ -53,9 +48,7 @@ test_multiset :: [TestTree]
 test_multiset =
   [ testCase "cons pattern for multiset"
       $ assertEqual "simple" [(1, [2, 3]), (2, [1, 3]), (3, [1, 2])]
-      $ matchAll @BFS [1, 2, 3] @(Multiset (M Int)) [q|
-          $x : $xs -> (x, xs)
-        |]
+      $ matchAll [1, 2, 3] (Multiset Integer) [[mc| $x : $xs -> (x, xs) |]]
   ]
 
 test_infinite :: [TestTree]
@@ -75,9 +68,7 @@ test_infinite =
         , (2, 4)
         ]
     $ take 10
-    $ matchAll @BFS [1 ..] @(Multiset (M Int)) [q|
-        $x : $y : _ -> (x, y)
-      |]
+    $ matchAll [1 ..] (Multiset Integer) [[mc| $x : $y : _ -> (x, y) |]]
   , testCase "set bfs order"
     $ assertEqual
         "simple"
@@ -93,27 +84,7 @@ test_infinite =
         , (2, 3)
         ]
     $ take 10
-    $ matchAll @BFS [1 ..] @(Set (M Int)) [q|
-        $x : $y : _ -> (x, y)
-      |]
-  , testCase "use bfs if omitted"
-    $ assertEqual
-        "simple"
-        [ (1, 1)
-        , (2, 1)
-        , (1, 2)
-        , (3, 1)
-        , (1, 3)
-        , (2, 2)
-        , (1, 4)
-        , (4, 1)
-        , (1, 5)
-        , (2, 3)
-        ]
-    $ take 10
-    $ matchAll [1 ..] @(Set (M Int)) [q|
-        $x : $y : _ -> (x, y)
-      |]
+    $ matchAll [1 ..] (Set Integer) [[mc| $x : $y : _ -> (x, y) |]]
   , testCase "set dfs order"
     $ assertEqual
         "simple"
@@ -129,27 +100,24 @@ test_infinite =
         , (1, 10)
         ]
     $ take 10
-    $ matchAll @DFS [1 ..] @(Set (M Int)) [q|
-        $x : $y : _ -> (x, y)
-      |]
+    $ matchAllDFS [1 ..] (Set Integer) [[mc| $x : $y : _ -> (x, y) |]]
   ]
 
 test_predicate :: [TestTree]
 test_predicate =
   [ testCase "predicate pattern"
       $ assertEqual "simple" [2, 4, 6, 8, 10]
-      $ matchAll @BFS [1 .. 10] @(Multiset (M Int)) [q|
-          (?(\x -> mod x 2 == 0) & $x) : _ -> x
-        |]
+      $ matchAll [1 .. 10]
+                 (Multiset Integer)
+                 [[mc| (?(\x -> mod x 2 == 0) & $x) : _ -> x |]]
   ]
 
 test_not :: [TestTree]
 test_not =
-  [ testCase "not pattern"
-      $ assertEqual "simple" [1, 3, 2]
-      $ matchAll @BFS [1, 1, 2, 3, 1, 3, 2] @(List (M Int)) [q|
-          _ ++ $x : !(_ ++ #x : _) -> x
-        |]
+  [ testCase "not pattern" $ assertEqual "simple" [1, 3, 2] $ matchAll
+      [1, 1, 2, 3, 1, 3, 2]
+      (List Integer)
+      [[mc| _ ++ $x : !(_ ++ #x : _) -> x |]]
   ]
 
 test_prime :: [TestTree]
@@ -169,15 +137,13 @@ test_prime =
         , (107, 109)
         ]
     $ take 10
-    $ matchAll @BFS primes @(List (M Int)) [q|
-        _ ++ $p : #(p+2) : _ -> (p, p+2)
-      |]
+    $ matchAll primes (List Integer) [[mc| _ ++ $p : #(p+2) : _ -> (p, p+2) |]]
   , testCase "(p, p+6)"
     $ assertEqual "simple" [(5, 11), (7, 13), (11, 17), (13, 19), (17, 23)]
     $ take 5
-    $ matchAll @BFS primes @(List (M Int)) [q|
-        _ ++ $p : _ ++ #(p+6) : _ -> (p, p+6)
-      |]
+    $ matchAll primes
+               (List Integer)
+               [[mc| _ ++ $p : _ ++ #(p+6) : _ -> (p, p+6) |]]
   , testCase "prime triplets"
     $ assertEqual
         "simple"
@@ -193,7 +159,8 @@ test_prime =
         , (97 , 101, 103)
         ]
     $ take 10
-    $ matchAll @BFS primes @(List (M Int)) [q|
-        _ ++ $p : ($m & (#(p+2) | #(p+4))) : #(p+6) : _ -> (p, m, p+6)
-      |]
+    $ matchAll
+        primes
+        (List Integer)
+        [[mc| _ ++ $p : ($m & (#(p+2) | #(p+4))) : #(p+6) : _ -> (p, m, p+6) |]]
   ]

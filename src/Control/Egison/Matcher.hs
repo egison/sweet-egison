@@ -1,29 +1,38 @@
 module Control.Egison.Matcher
-  ( Matcher(..)
-  , M(..)
+  ( Matcher
+  , Something(..)
+  , Eql(..)
+  , Integer(..)
   )
 where
 
-import           Data.Coerce                    ( Coercible
-                                                , coerce
-                                                )
+import           Prelude                 hiding ( Integer )
+import           Control.Monad                  ( MonadPlus(..) )
+import           Data.Query.Pattern.Value       ( ValuePattern(..) )
+import           Data.Tagged                    ( Tagged(..) )
 
 
-class Matcher a where
-  type Target a
-  wrap :: Target a -> a
-  unwrap :: a -> Target a
-
-  {-# INLINE wrap #-}
-  default wrap :: Coercible (Target a) a => Target a -> a
-  wrap = coerce
-  {-# INLINE unwrap #-}
-  default unwrap :: Coercible a (Target a) => a -> Target a
-  unwrap = coerce
+class Matcher m tgt
 
 
-newtype M a = M a
-  deriving newtype Eq
+data Something = Something
 
-instance Matcher (M a) where
-  type Target (M a) = a
+instance Matcher Something a
+
+
+data Eql = Eql
+
+instance Eq a => Matcher Eql a
+
+instance Eq a => ValuePattern Eql a where
+  value (Tagged a) b | a == b    = pure ()
+                     | otherwise = mzero
+
+
+data Integer = Integer
+
+instance Integral a => Matcher Integer a
+
+instance Integral a => ValuePattern Integer a where
+  value (Tagged a) b | a == b    = pure ()
+                     | otherwise = mzero
