@@ -26,26 +26,6 @@ instance MonadSearch m => Monoid (Query m tag tgt out) where
   {-# INLINABLE mempty #-}
   mempty = Query $ \_ _ -> mzero
 
-instance MonadSearch m => Functor (Query m tag tgt) where
-  {-# INLINABLE fmap #-}
-  fmap f (Query a) = Query $ fmap f . a
-
-instance MonadSearch m => Applicative (Query m tag tgt) where
-  {-# INLINABLE pure #-}
-  pure = Query . const . pure
-  {-# INLINABLE liftA2 #-}
-  liftA2 f (Query a) (Query b) = Query $ \x -> f <$> a x <*> b x
-
-instance MonadSearch m => Alternative (Query m tag tgt) where
-  {-# INLINABLE empty #-}
-  empty = Query $ const empty
-  {-# INLINE (<|>) #-}
-  Query a <|> Query b = Query $ \x -> a x <|> b x
-
-instance MonadSearch m => Monad (Query m tag tgt) where
-  {-# INLINABLE (>>=) #-}
-  Query a >>= f = Query $ \x -> a x >>= flip unQuery x . f
-
 
 -- | Class that represents search strategies used in pattern matching.
 -- In the view of implementors, this is a helper class to default search strategy to BFS in 'query'.
