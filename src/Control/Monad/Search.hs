@@ -22,7 +22,7 @@ import           Control.Monad.Logic            ( MonadLogic(..)
 -- | MonadSearch. Represents searches with backtracking.
 class MonadPlus m => MonadSearch m where
   collect :: m a -> [a]
-  guarded :: Bool -> m a -> m a
+  guarded :: m () -> m a -> m a
 
   (>->) :: m a -> (a -> m b) -> m b
   exclude :: m a -> m ()
@@ -54,8 +54,7 @@ newtype BFS a = BFS { unBFS :: MaybeT Logic a }
 
 instance MonadSearch BFS where
   {-# INLINABLE guarded #-}
-  guarded True  m = m
-  guarded False _ = BFS . MaybeT $ pure Nothing
+  guarded m x = ifte m (const x) (BFS . MaybeT $ pure Nothing)
   {-# INLINABLE exclude #-}
   exclude = lnot
   {-# INLINE (>->) #-}
@@ -69,8 +68,7 @@ newtype DFS a = DFS { unDFS :: [a] }
 
 instance MonadSearch DFS where
   {-# INLINABLE guarded #-}
-  guarded True  m = m
-  guarded False _ = mzero
+  guarded m x = ifte m (const x) mzero
   {-# INLINABLE exclude #-}
   exclude = lnot
   {-# INLINE (>->) #-}

@@ -126,8 +126,8 @@ compilePattern pat body = do
       AppE (VarE guardedName) (AppE (AppE (VarE $ mkName "value") (VarE t)) e)
   go (Pat.Predicate e) t = pure $ AppE guardExp
    where
-    guardExp =
-      AppE (VarE guardedName) (AppE e (AppE (VarE unwrapName) (VarE t)))
+    guardExp = AppE (VarE guardedName)
+                    (guard_ (AppE e (AppE (VarE unwrapName) (VarE t))))
   go (Pat.And p1 p2) t = do
     t1 <- go p1 t
     t2 <- go p2 t
@@ -160,6 +160,8 @@ compilePattern pat body = do
   boundTargetPat _            x = VarP x
   sbind_ x f = ParensE (UInfixE (ParensE x) (VarE sbindOp) (ParensE f))
   let_ x e1 = LetE [ValD (VarP x) (NormalB e1) []]
+  guard_ b =
+    CondE b (AppE (VarE pureName) (TupE [])) (VarE 'Control.Monad.mzero)
   queryName   = 'Data.Query.Query
   guardedName = 'Control.Monad.Search.guarded
   plusName    = 'Control.Monad.mplus

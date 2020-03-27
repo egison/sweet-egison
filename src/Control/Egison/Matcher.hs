@@ -10,6 +10,7 @@ module Control.Egison.Matcher
 where
 
 import           Prelude                 hiding ( Integer )
+import           Control.Monad                  ( MonadPlus(..) )
 import           Data.Query.Pattern.Value       ( ValuePattern(..) )
 import           Data.Tagged                    ( Tagged(..) )
 
@@ -27,7 +28,8 @@ data EqM = EqM
 instance Eq a => Matcher EqM a
 
 instance Eq a => ValuePattern EqM a where
-  value (Tagged a) b = a == b
+  value (Tagged a) b | a == b    = pure ()
+                     | otherwise = mzero
 
 type Eql = EqM
 
@@ -36,6 +38,7 @@ data IntegralM = IntegralM
 instance Integral a => Matcher IntegralM a
 
 instance Integral a => ValuePattern IntegralM a where
-  value (Tagged a) b = a == b
+  value (Tagged a) b | a == b    = pure ()
+                     | otherwise = mzero
 
 type Integer = IntegralM
