@@ -16,39 +16,24 @@ import           Data.Numbers.Primes            ( primes )
 
 
 pmap :: (a -> b) -> [a] -> [b]
-pmap f xs = matchAllDFS xs (List Something) [q| _ ++ $x : _ -> f x |]
+pmap f xs = matchAllDFS xs (List Something) [[mc| _ ++ $x : _ -> f x |]]
 
 pmember :: Eq a => a -> [a] -> Bool
 pmember x xs =
-  matchDFS xs (Multiset EqM) $ [q| #x : _ -> True |] <> [q| _ -> False |]
+  matchDFS xs (Multiset EqM) [[mc| #x : _ -> True |], [mc| _ -> False |]]
 
 test_list :: [TestTree]
 test_list =
   [ testCase "cons pattern for list"
     $ assertEqual "simple" [(1, [2, 3])]
-    $ matchAll
-        [1, 2, 3]
-        (List IntegralM)
-        [q|
-        $x : $xs -> (x, xs)
-      |]
+    $ matchAll [1, 2, 3] (List IntegralM) [[mc| $x : $xs -> (x, xs) |]]
   , testCase "cons pattern for list (infinite)"
     $ assertEqual "simple" [1]
-    $ matchAll
-        [1 ..]
-        (List IntegralM)
-        [q|
-        $x : _ -> x
-      |]
+    $ matchAll [1 ..] (List IntegralM) [[mc| $x : _ -> x |]]
   , testCase "join pattern for list"
     $ assertEqual "length" 6
     $ length
-    $ matchAll
-        [1 .. 5]
-        (List IntegralM)
-        [q|
-        $xs ++ $ys -> (xs, ys)
-      |]
+    $ matchAll [1 .. 5] (List IntegralM) [[mc| $xs ++ $ys -> (xs, ys) |]]
   , testCase "'map' defined using matchAll"
     $ assertEqual "simple" [2, 4, 6]
     $ take 3
@@ -62,12 +47,7 @@ test_multiset :: [TestTree]
 test_multiset =
   [ testCase "cons pattern for multiset"
       $ assertEqual "simple" [(1, [2, 3]), (2, [1, 3]), (3, [1, 2])]
-      $ matchAll
-          [1, 2, 3]
-          (Multiset IntegralM)
-          [q|
-          $x : $xs -> (x, xs)
-        |]
+      $ matchAll [1, 2, 3] (Multiset IntegralM) [[mc| $x : $xs -> (x, xs) |]]
   ]
 
 test_infinite :: [TestTree]
@@ -87,12 +67,7 @@ test_infinite =
         , (2, 4)
         ]
     $ take 10
-    $ matchAll
-        [1 ..]
-        (Multiset IntegralM)
-        [q|
-        $x : $y : _ -> (x, y)
-      |]
+    $ matchAll [1 ..] (Multiset IntegralM) [[mc| $x : $y : _ -> (x, y) |]]
   , testCase "set bfs order"
     $ assertEqual
         "simple"
@@ -108,12 +83,7 @@ test_infinite =
         , (2, 3)
         ]
     $ take 10
-    $ matchAll
-        [1 ..]
-        (Set IntegralM)
-        [q|
-        $x : $y : _ -> (x, y)
-      |]
+    $ matchAll [1 ..] (Set IntegralM) [[mc| $x : $y : _ -> (x, y) |]]
   , testCase "set dfs order"
     $ assertEqual
         "simple"
@@ -129,24 +99,16 @@ test_infinite =
         , (1, 10)
         ]
     $ take 10
-    $ matchAllDFS
-        [1 ..]
-        (Set IntegralM)
-        [q|
-        $x : $y : _ -> (x, y)
-      |]
+    $ matchAllDFS [1 ..] (Set IntegralM) [[mc| $x : $y : _ -> (x, y) |]]
   ]
 
 test_predicate :: [TestTree]
 test_predicate =
   [ testCase "predicate pattern"
       $ assertEqual "simple" [2, 4, 6, 8, 10]
-      $ matchAll
-          [1 .. 10]
-          (Multiset IntegralM)
-          [q|
-          (?(\x -> mod x 2 == 0) & $x) : _ -> x
-        |]
+      $ matchAll [1 .. 10]
+                 (Multiset IntegralM)
+                 [[mc| (?(\x -> mod x 2 == 0) & $x) : _ -> x |]]
   ]
 
 test_not :: [TestTree]
@@ -154,9 +116,7 @@ test_not =
   [ testCase "not pattern" $ assertEqual "simple" [1, 3, 2] $ matchAll
       [1, 1, 2, 3, 1, 3, 2]
       (List IntegralM)
-      [q|
-          _ ++ $x : !(_ ++ #x : _) -> x
-        |]
+      [[mc| _ ++ $x : !(_ ++ #x : _) -> x |]]
   ]
 
 test_prime :: [TestTree]
@@ -176,21 +136,15 @@ test_prime =
         , (107, 109)
         ]
     $ take 10
-    $ matchAll
-        primes
-        (List IntegralM)
-        [q|
-        _ ++ $p : #(p+2) : _ -> (p, p+2)
-      |]
+    $ matchAll primes
+               (List IntegralM)
+               [[mc| _ ++ $p : #(p+2) : _ -> (p, p+2) |]]
   , testCase "(p, p+6)"
     $ assertEqual "simple" [(5, 11), (7, 13), (11, 17), (13, 19), (17, 23)]
     $ take 5
-    $ matchAll
-        primes
-        (List IntegralM)
-        [q|
-        _ ++ $p : _ ++ #(p+6) : _ -> (p, p+6)
-      |]
+    $ matchAll primes
+               (List IntegralM)
+               [[mc| _ ++ $p : _ ++ #(p+6) : _ -> (p, p+6) |]]
   , testCase "prime triplets"
     $ assertEqual
         "simple"
@@ -209,7 +163,5 @@ test_prime =
     $ matchAll
         primes
         (List IntegralM)
-        [q|
-        _ ++ $p : ($m & (#(p+2) | #(p+4))) : #(p+6) : _ -> (p, m, p+6)
-      |]
+        [[mc| _ ++ $p : ($m & (#(p+2) | #(p+4))) : #(p+6) : _ -> (p, m, p+6) |]]
   ]

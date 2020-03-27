@@ -8,9 +8,11 @@
 
 module Control.Egison
   ( module X
+  , mc
   )
 where
 
+-- re-exports
 import           Control.Egison.Match          as X
 import           Control.Egison.Matcher        as X
 
@@ -30,3 +32,10 @@ import           Control.Egison.Matcher.Set    as X
 import           Control.Egison.Matcher.Pair   as X
 import           Control.Egison.Matcher.UnorderedPair
                                                as X
+
+
+-- local imports
+import           Language.Haskell.TH.Quote      ( QuasiQuoter )
+
+mc :: QuasiQuoter
+mc = q

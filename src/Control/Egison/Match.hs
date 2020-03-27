@@ -27,7 +27,7 @@ match
    . Matcher matcher target
   => target
   -> matcher
-  -> Query BFS matcher target out
+  -> [Query BFS matcher target out]
   -> out
 match tgt m = head . matchAll tgt m
 
@@ -37,9 +37,9 @@ matchAll
    . Matcher matcher target
   => target
   -> matcher
-  -> Query BFS matcher target out
+  -> [Query BFS matcher target out]
   -> [out]
-matchAll tgt _ q = collect $ find @_ @matcher q tgt
+matchAll tgt _ q = collect $ find @_ @matcher (mconcat q) tgt
 
 {-# INLINABLE matchDFS #-}
 matchDFS
@@ -47,7 +47,7 @@ matchDFS
    . Matcher matcher target
   => target
   -> matcher
-  -> Query DFS matcher target out
+  -> [Query DFS matcher target out]
   -> out
 matchDFS tgt m = head . matchAllDFS tgt m
 
@@ -57,6 +57,6 @@ matchAllDFS
    . Matcher matcher target
   => target
   -> matcher
-  -> Query DFS matcher target out
+  -> [Query DFS matcher target out]
   -> [out]
-matchAllDFS tgt _ q = collect $ find @_ @matcher q tgt
+matchAllDFS tgt _ q = collect $ find @_ @matcher (mconcat q) tgt
