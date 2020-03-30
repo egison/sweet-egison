@@ -6,9 +6,7 @@ where
 
 import           Control.Egison.Matcher         ( Matcher )
 import           Control.Monad                  ( MonadPlus(..) )
-import           Data.Query.Pattern             ( Pattern
-                                                , ReturnList(..)
-                                                )
+import           Data.Query.Pattern             ( Pattern )
 import           Data.Query.Pattern.Tuple       ( Tuple2Pattern(..) )
 
 
@@ -23,7 +21,7 @@ instance Matcher m tgt => Tuple2Pattern (UnorderedPair m) (tgt, tgt) where
   type SndTag _ = m
 
   {-# INLINABLE tuple2 #-}
-  tuple2 _ (x, y) = pure (x :- y :- Nil) `mplus` pure (y :- x :- Nil)
+  tuple2 _ (x, y) = pure (x, y) `mplus` pure (y, x)
 
 {-# INLINABLE upair #-}
 upair

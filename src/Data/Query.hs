@@ -7,9 +7,7 @@ where
 
 import           Data.Proxy                     ( Proxy(..) )
 import           Control.Monad                  ( mzero )
-import           Control.Applicative            ( Alternative(..)
-                                                , Applicative(..)
-                                                )
+import           Control.Applicative            ( Alternative(..) )
 import           Control.Monad.Search           ( MonadSearch
                                                 , BFS
                                                 , DFS

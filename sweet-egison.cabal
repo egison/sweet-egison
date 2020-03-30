@@ -72,7 +72,6 @@ library
     ExplicitForAll
     FlexibleContexts
     FlexibleInstances
-    GADTs
     GeneralizedNewtypeDeriving
     LambdaCase
     MultiParamTypeClasses

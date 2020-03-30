@@ -5,7 +5,6 @@ where
 
 import           Control.Egison.Matcher         ( Matcher )
 import           Control.Monad                  ( MonadPlus(..) )
-import           Data.Query.Pattern             ( ReturnList(..) )
 import           Data.Query.Pattern.Collection  ( CollectionPattern(..) )
 
 
@@ -17,19 +16,16 @@ instance Matcher m tgt => CollectionPattern (List m) [tgt] where
   type Elem [tgt] = tgt
   type ElemTag (List m) = m
   {-# INLINE nil #-}
-  nil _ [] = pure Nil
+  nil _ [] = pure ()
   nil _ _  = mzero
   {-# INLINE cons #-}
   cons _ []       = mzero
-  cons _ (x : xs) = pure $ x :- xs :- Nil
+  cons _ (x : xs) = pure (x, xs)
   {-# INLINABLE join #-}
-  join _ []       = pure $ [] :- [] :- Nil
-  join t (x : xs) = pure ([] :- (x : xs) :- Nil) `mplus` do
-    (ys, zs) <- extract <$> join t xs
-    pure $ (x : ys) :- zs :- Nil
-   where
-    extract :: ReturnList '[t, s] '[a, b] -> (a, b)
-    extract (ys :- zs :- Nil) = (ys, zs)
+  join _ []       = pure ([], [])
+  join t (x : xs) = pure ([], x : xs) `mplus` do
+    (ys, zs) <- join t xs
+    pure (x : ys, zs)
   {-# INLINABLE spread #-}
   spread _ []       = mzero
-  spread t (x : xs) = pure ((x : xs) :- Nil) `mplus` spread t xs
+  spread t (x : xs) = pure (x : xs) `mplus` spread t xs
