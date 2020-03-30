@@ -1,12 +1,20 @@
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE QuasiQuotes #-}
+
 module Control.Egison.Matcher.Pair
   ( Pair(..)
   , pair
   )
 where
 
-import           Control.Egison.Matcher         ( Matcher )
+import           Control.Monad                  ( MonadPlus(..) )
 import           Data.Query.Pattern             ( Pattern )
 import           Data.Query.Pattern.Tuple       ( Tuple2Pattern(..) )
+import           Data.Query.Pattern.Value       ( ValuePattern(..) )
+import           Control.Egison.Matcher         ( Matcher )
+import           Control.Egison.Match           ( match'
+                                                , mc
+                                                )
 
 
 data Pair m1 m2 = Pair m1 m2
@@ -21,6 +29,12 @@ instance (Matcher m1 tgt1, Matcher m2 tgt2) => Tuple2Pattern (Pair m1 m2) (tgt1,
 
   {-# INLINABLE tuple2 #-}
   tuple2 _ (x, y) = pure (x, y)
+
+instance (Matcher m1 tgt1, Matcher m2 tgt2, ValuePattern m1 tgt1, ValuePattern m2 tgt2) => ValuePattern (Pair m1 m2) (tgt1, tgt2) where
+  value a _ b =
+    match' (a, b) @(Pair (Pair m1 m2) (Pair m1 m2))
+      $  [mc| (($x, $y), (#x, #y)) -> pure () |]
+      <> [mc| _ -> mzero |]
 
 {-# INLINABLE pair #-}
 pair

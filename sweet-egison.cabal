@@ -77,6 +77,7 @@ library
     NamedFieldPuns
     PolyKinds
     RankNTypes
+    ScopedTypeVariables
     StandaloneDeriving
     TupleSections
     TypeFamilies

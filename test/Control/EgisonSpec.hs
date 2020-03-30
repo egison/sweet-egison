@@ -1,6 +1,7 @@
 module Control.EgisonSpec
   ( test_list
   , test_multiset
+  , test_value
   , test_infinite
   , test_not
   , test_predicate
@@ -48,6 +49,60 @@ test_multiset =
   [ testCase "cons pattern for multiset"
       $ assertEqual "simple" [(1, [2, 3]), (2, [1, 3]), (3, [1, 2])]
       $ matchAll [1, 2, 3] (Multiset IntegralM) [[mc| $x : $xs -> (x, xs) |]]
+  ]
+
+test_value :: [TestTree]
+test_value =
+  [ testCase "value pattern for list (matched)"
+    $ assertEqual "simple" "Matched"
+    $ match [1, 2, 3]
+            (List IntegralM)
+            [[mc| #[1,2,3] -> "Matched" |], [mc| _ -> "Not matched" |]]
+  , testCase "value pattern for list (not matched)"
+    $ assertEqual "simple" "Not matched"
+    $ match [1, 2, 3]
+            (List IntegralM)
+            [[mc| #[2,1,3] -> "Matched" |], [mc| _ -> "Not matched" |]]
+  , testCase "value pattern for multiset (matched)"
+    $ assertEqual "simple" "Matched"
+    $ match [1, 2, 3]
+            (Multiset IntegralM)
+            [[mc| #[2,1,3] -> "Matched" |], [mc| _ -> "Not matched" |]]
+  , testCase "value pattern for multiset (not matched)"
+    $ assertEqual "simple" "Not matched"
+    $ match [1, 2, 3]
+            (Multiset IntegralM)
+            [[mc| #[2,1,3,3] -> "Matched" |], [mc| _ -> "Not matched" |]]
+  , testCase "value pattern for set (matched)"
+    $ assertEqual "simple" "Matched"
+    $ match [1, 2, 3]
+            (Set IntegralM)
+            [[mc| #[2,1,3,3] -> "Matched" |], [mc| _ -> "Not matched" |]]
+  , testCase "value pattern for set (not matched)"
+    $ assertEqual "simple" "Not matched"
+    $ match [1, 2, 3]
+            (Set IntegralM)
+            [[mc| #[1,3,3] -> "Matched" |], [mc| _ -> "Not matched" |]]
+  , testCase "value pattern for pair (matched)"
+    $ assertEqual "simple" "Matched"
+    $ match ([1, 2], [2, 3])
+            (Pair (Multiset IntegralM) (Multiset IntegralM))
+            [[mc| #([2,1], [2,3]) -> "Matched" |], [mc| _ -> "Not matched" |]]
+  , testCase "value pattern for pair (not matched)"
+    $ assertEqual "simple" "Not matched"
+    $ match ([1, 2], [2, 3])
+            (Pair (List IntegralM) (Multiset IntegralM))
+            [[mc| #([2,1], [2,3]) -> "Matched" |], [mc| _ -> "Not matched" |]]
+  , testCase "value pattern for unordered pair (matched)"
+    $ assertEqual "simple" "Matched"
+    $ match ([1, 2 :: Int], [2, 3 :: Int])
+            (UnorderedPair (Multiset IntegralM))
+            [[mc| #([2,3], [2,1]) -> "Matched" |], [mc| _ -> "Not matched" |]]
+  , testCase "value pattern for unordered pair (not matched)"
+    $ assertEqual "simple" "Not matched"
+    $ match ([1, 2 :: Int], [2, 3 :: Int])
+            (UnorderedPair (Multiset IntegralM))
+            [[mc| #([2,3], [1]) -> "Matched" |], [mc| _ -> "Not matched" |]]
   ]
 
 test_infinite :: [TestTree]

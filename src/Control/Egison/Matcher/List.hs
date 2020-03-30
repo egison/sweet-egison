@@ -1,11 +1,20 @@
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE QuasiQuotes #-}
+
 module Control.Egison.Matcher.List
   ( List(..)
   )
 where
 
-import           Control.Egison.Matcher         ( Matcher )
 import           Control.Monad                  ( MonadPlus(..) )
 import           Data.Query.Pattern.Collection  ( CollectionPattern(..) )
+import           Data.Query.Pattern.Value       ( ValuePattern(..) )
+import           Data.Query.Pattern.Tuple       ( tuple2 )
+import           Control.Egison.Matcher         ( Matcher )
+import           Control.Egison.Matcher.Pair    ( Pair )
+import           Control.Egison.Match           ( match'
+                                                , mc
+                                                )
 
 
 newtype List m = List m
@@ -29,3 +38,10 @@ instance Matcher m tgt => CollectionPattern (List m) [tgt] where
   {-# INLINABLE spread #-}
   spread _ []       = mzero
   spread t (x : xs) = pure (x : xs) `mplus` spread t xs
+
+instance (Matcher m tgt, ValuePattern m tgt) => ValuePattern (List m) [tgt] where
+  value a _ b =
+    match' (a, b) @(Pair (List m) (List m))
+      $  [mc| ([], []) -> pure () |]
+      <> [mc| ($x : $xs, (#x : #xs)) -> pure () |]
+      <> [mc| _ -> mzero |]

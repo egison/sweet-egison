@@ -1,4 +1,3 @@
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 
 module Control.Egison.Match
@@ -6,17 +5,24 @@ module Control.Egison.Match
   , match
   , matchAllDFS
   , matchDFS
+  , mc
+  -- * Flexible variants of 'match' and 'matchAll'
+  , match'
+  , matchAll'
   )
 where
 
+import           Language.Haskell.TH.Quote      ( QuasiQuoter )
 import           Control.Egison.Matcher         ( Matcher )
 import           Control.Monad.Search           ( MonadSearch(..)
                                                 , BFS
                                                 , DFS
                                                 )
 import           Data.Query                     ( Query
+                                                , SearchStrategy
                                                 , query
                                                 )
+import           Data.Query.QQ                  ( q )
 
 
 {-# INLINABLE match #-}
@@ -37,7 +43,7 @@ matchAll
   -> matcher
   -> [Query BFS matcher target out]
   -> [out]
-matchAll tgt _ q = collect $ query @matcher (mconcat q) tgt
+matchAll tgt _ qs = collect $ query @matcher (mconcat qs) tgt
 
 {-# INLINABLE matchDFS #-}
 matchDFS
@@ -57,4 +63,25 @@ matchAllDFS
   -> matcher
   -> [Query DFS matcher target out]
   -> [out]
-matchAllDFS tgt _ q = collect $ query @matcher (mconcat q) tgt
+matchAllDFS tgt _ qs = collect $ query @matcher (mconcat qs) tgt
+
+-- | 'QuasiQuoter' for match clauses, an alias of 'q'
+mc :: QuasiQuoter
+mc = q
+
+
+{-# INLINABLE match' #-}
+match'
+  :: forall strategy matcher target out
+   . (Matcher matcher target, SearchStrategy strategy)
+  => target
+  -> forall m . m ~ matcher => Query strategy matcher target out -> out
+match' tgt = head . matchAll' tgt
+
+{-# INLINABLE matchAll' #-}
+matchAll'
+  :: forall strategy matcher target out
+   . (Matcher matcher target, SearchStrategy strategy)
+  => target
+  -> forall m . m ~ matcher => Query strategy matcher target out -> [out]
+matchAll' tgt qu = collect $ query @matcher qu tgt
