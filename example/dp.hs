@@ -1,68 +1,70 @@
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE QuasiQuotes           #-}
 {-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE TypeApplications         #-}
-{-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
 
-import           Control.Egison
+import           Control.Egison          hiding ( Integer )
+import qualified Control.Egison.Matcher        as M
 
 import           Data.List                      ( nub
                                                 , delete
                                                 )
 
 
--- Literal matcher
-newtype Literal = Literal Integer
-  deriving Eq
-
-instance Matcher Literal where
-  type Target Literal = Integer
-
+-- Integer matcher
+data Literal = Literal
+instance Integral a => Matcher Literal a
+instance Integral a => ValuePattern Literal a
 
 deleteLiteral l cnf =
-  map (\c -> matchAll @BFS c @(Multiset Literal) [q| (!#l & $m) : _ -> m |]) cnf
+  map (\c -> matchAll c (Multiset Literal) [[mc| (!#l & $m) : _ -> m |]]) cnf
 
-deleteClausesWith l cnf = matchAll @BFS cnf @(Multiset (Multiset Literal))
-  [q| (!(#l : _) & $c) : _ -> c |]
+deleteClausesWith l cnf =
+  matchAll cnf (Multiset (Multiset Literal)) [[mc| (!(#l : _) & $c) : _ -> c |]]
 
 assignTrue l cnf = deleteLiteral (negate l) (deleteClausesWith l cnf)
 
-tautology c =
-  match @BFS c @(Multiset Literal)
-    $  [q| $l : #(negate l) : _ -> True |]
-    <> [q| _ -> False |]
+tautology c = match
+  c
+  (Multiset Literal)
+  [[mc| $l : #(negate l) : _ -> True |], [mc| _ -> False |]]
 
 resolveOn v cnf = filter
   (not . tautology)
-  (matchAll @BFS cnf @(Multiset (Multiset Literal)) [q|
-     (#v : $xs) : (#(negate v) : $ys) : _ -> nub (xs ++ ys)
-   |]
+  (matchAll
+    cnf
+    (Multiset (Multiset Literal))
+    [ [mc| (#v : $xs) :
+                   (#(negate v) : $ys) :
+                    _ ->
+                  nub (xs ++ ys) |]
+    ]
   )
 
 dp :: [Integer] -> [[Integer]] -> Bool
-dp vars cnf =
-  match @BFS (vars, cnf)
-    @(Pair (Multiset Literal) (Multiset (Multiset Literal)))
-     -- satisfiable
-    $ [q| (_, []) -> True |]
-     -- unsatisfiable
-    <> [q| (_, [] : _) -> False |]
-     -- 1-literal rule
-    <> [q| (_, ($l : []) : _) ->
+dp vars cnf = match
+  (vars, cnf)
+  (Pair (Multiset Literal) (Multiset (Multiset Literal)))
+    -- satisfiable
+  [ [mc| (_, []) -> True |]
+    -- unsatisfiable
+  , [mc| (_, [] : _) -> False |]
+    -- 1-literal rule
+  , [mc| (_, ($l : []) : _) ->
             dp (delete (abs l) vars) (assignTrue l cnf) |]
-     -- pure literal rule (positive)
-    <> [q| ($v : $vs, !((#v : _) : _)) ->
+    -- pure literal rule (positive)
+  , [mc| ($v : $vs, !((#v : _) : _)) ->
             dp vs (assignTrue v cnf) |]
-     -- pure literal rule (negative)
-    <> [q| ($v : $vs, !((#(negate v) : _) : _)) ->
+    -- pure literal rule (negative)
+  , [mc| ($v : $vs, !((#(negate v) : _) : _)) ->
             dp vs (assignTrue (negate v) cnf) |]
-     -- otherwise
-    <> [q| ($v : $vs, _) ->
+    -- otherwise
+  , [mc| ($v : $vs, _) ->
             dp vs (resolveOn v cnf ++
                    deleteClausesWith v (deleteClausesWith (negate v) cnf)) |]
+  ]
 
 main :: IO ()
 main = do
@@ -72,6 +74,7 @@ main = do
   print $ dp [1, 2] [[1], [1, 2]]
   print $ dp [1 .. 50] problem
 
+problem :: [[Integer]]
 problem =
   [ [18, -8, 29]
   , [-16, 3, 18]
