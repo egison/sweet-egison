@@ -84,10 +84,10 @@ The non-linear pattern is another powerful pattern-matching feature. It allows u
 We can implement a pattern-matching version of set functions such as `member` and `intersect` in a declarative way using non-linear patterns. Match clauses are monoids and can be concatenated using `<>`.
 
 ```haskell
-> member x xs = matchDFS xs (Multiset Eql) [[mc| #x : _ -> True |], [mc| _ -> False |]]
+> member x xs = matchDFS xs (Multiset EqM) [[mc| #x : _ -> True |], [mc| _ -> False |]]
 > member 1 [3,4,1,4]
 True
-> intersect xs ys = matchAllDFS (xs, ys) (Pair (Set Eql) (Set Eql)) [[mc| ($x : _, #x : _) -> x |]]
+> intersect xs ys = matchAllDFS (xs, ys) (Pair (Set EqM) (Set EqM)) [[mc| ($x : _, #x : _) -> x |]]
 > intersect [1,2,3] [4,5,3,2]
 [2,3]
 ```
