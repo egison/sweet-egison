@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 module Data.Query.Pattern.InternalTH
   ( makeToTupleInstance
   )
@@ -37,6 +39,10 @@ makeWithNames tyNames valNames = instanceD nullCxt instHead [typeDecl, valDecl]
     []  -> tupE []
     [x] -> varE x
     xs  -> tupE $ map varE xs
+#if MIN_VERSION_template_haskell(2,15,0)
   typeDecl =
     tySynInstD (tySynEqn Nothing (appT (conT (mkName "Tupled")) tyList) tyTuple)
+#else
+  typeDecl = tySynInstD (mkName "Tupled") (tySynEqn [tyList] tyTuple)
+#endif
   valDecl = funD (mkName "tupled") [clause [valHListPat] (normalB valTuple) []]

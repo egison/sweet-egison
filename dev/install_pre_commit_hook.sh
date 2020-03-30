@@ -29,7 +29,7 @@ function main() {
 
 # $signature
 
-if ! git ls-files '*.hs' | xargs brittany --check-mode; then
+if ! git ls-files '*.hs' | xargs ./dev/brittany.sh --check-mode; then
   >&2 echo "fatal: Some files need formatting. Aborted."
   exit 1
 fi

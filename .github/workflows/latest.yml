@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
-      - run: find . -name '*.hs' -exec docker run -v $(pwd):/work herpinc/brittany:0.12.1.1 brittany --check-mode {} +
+      - run: find . -name '*.hs' -exec ./dev/brittany.sh --check-mode {} +
   cabal-fmt:
     name: check .cabal style
     runs-on: ubuntu-latest
