@@ -2,6 +2,7 @@ module Data.Query
   ( Query(..)
   , SearchStrategy
   , query
+  , query'
   )
 where
 
@@ -45,4 +46,13 @@ query
   => Query s tag tgt out
   -> tgt
   -> s out
-query (Query f) = f Proxy
+query = query'
+
+{-# INLINE query' #-}
+query'
+  :: forall tag s tgt out
+   . MonadSearch s
+  => Query s tag tgt out
+  -> tgt
+  -> s out
+query' (Query f) = f Proxy

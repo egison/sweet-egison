@@ -17,6 +17,7 @@ import           Control.Egison.Matcher.Multiset
                                                 ( Multiset )
 import           Control.Egison.Match           ( match'
                                                 , matchAll'
+                                                , mmatchAll'
                                                 , mc
                                                 )
 
@@ -32,8 +33,8 @@ instance Matcher m tgt => CollectionPattern (Set m) [tgt] where
   nil _ [] = pure ()
   nil _ _  = mzero
   {-# INLINABLE cons #-}
-  cons _ xs = foldr go mzero xs where go x acc = pure (x, xs) `mplus` acc
--- TODO: Implement
+  cons _ xs = mmatchAll' xs @(List m) [mc| _ ++ $x : _ -> (x, xs) |]
+  -- TODO: Implement
   join   = undefined
   spread = undefined
 

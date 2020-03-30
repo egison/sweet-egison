@@ -9,6 +9,7 @@ module Control.Egison.Match
   -- * Flexible variants of 'match' and 'matchAll'
   , match'
   , matchAll'
+  , mmatchAll'
   )
 where
 
@@ -21,6 +22,7 @@ import           Control.Monad.Search           ( MonadSearch(..)
 import           Data.Query                     ( Query
                                                 , SearchStrategy
                                                 , query
+                                                , query'
                                                 )
 import           Data.Query.QQ                  ( q )
 
@@ -85,3 +87,14 @@ matchAll'
   => target
   -> forall m . m ~ matcher => Query strategy matcher target out -> [out]
 matchAll' tgt qu = collect $ query @matcher qu tgt
+
+{-# INLINABLE mmatchAll' #-}
+mmatchAll'
+  :: forall strategy matcher target out
+   . (Matcher matcher target, MonadSearch strategy)
+  => target
+  -> forall m
+   . m ~ matcher
+  => Query strategy matcher target out
+  -> strategy out
+mmatchAll' tgt qu = query' @matcher @strategy qu tgt
