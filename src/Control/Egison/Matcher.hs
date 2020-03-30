@@ -22,16 +22,10 @@ instance Matcher Something a
 data Eql = Eql
 
 instance Eq a => Matcher Eql a
-
-instance Eq a => ValuePattern Eql a where
-  value a _ b | a == b    = pure ()
-              | otherwise = mzero
+instance Eq a => ValuePattern Eql a
 
 
 data Integer = Integer
 
 instance Integral a => Matcher Integer a
-
-instance Integral a => ValuePattern Integer a where
-  value a _ b | a == b    = pure ()
-              | otherwise = mzero
+instance Integral a => ValuePattern Integer a
