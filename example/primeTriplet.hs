@@ -10,6 +10,6 @@ main = print $ take 10 results
  where
   results = matchAll
     primes
-    (List Eql)
+    (List EqM)
     [ [mc| _ ++ $x : ($y & (#(x + 2) | #(x + 4))) : #(x + 6) : _ -> (x, y, x + 6) |]
     ]

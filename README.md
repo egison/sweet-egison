@@ -73,11 +73,11 @@ With `matchAllDFS`, we can define an intuitive pattern-matching version of `conc
 
 ### Non-linear patterns
 
-The non-linear pattern is another powerful pattern-matching feature. It allows us to refer the value bound to variables appear in the left side of the pattern. We provide a pattern syntax named value patterns in the form of `#e`. The `Eql` matcher enables value patterns to match with targets that are equal to the corresponding expression. For example, the following example enumerates (p, p+2) pairs of primes:
+The non-linear pattern is another powerful pattern-matching feature. It allows us to refer the value bound to variables appear in the left side of the pattern. We provide a pattern syntax named value patterns in the form of `#e`. The `EqM` matcher enables value patterns to match with targets that are equal to the corresponding expression. For example, the following example enumerates (p, p+2) pairs of primes:
 
 ```haskell
 > import Data.Numbers.Primes ( primes )
-> take 10 $ matchAll primes (List Eql) [[mc| _ ++ $p : #(p + 2) : _ -> (p, p+2) |]]
+> take 10 $ matchAll primes (List EqM) [[mc| _ ++ $p : #(p + 2) : _ -> (p, p+2) |]]
 [(3,5),(5,7),(11,13),(17,19),(29,31),(41,43),(59,61),(71,73),(101,103),(107,109)]
 ```
 

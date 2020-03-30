@@ -6,8 +6,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE TupleSections         #-}
 
-import           Control.Egison          hiding ( Integer )
-import qualified Control.Egison.Matcher        as M
+import           Control.Egison
 
 import           Data.List                      ( sortBy
                                                 , union
@@ -68,7 +67,7 @@ initVars vs = map ((, 0) . negate) vs ++ map (, 0) vs
 addVars :: [Integer] -> [(Integer, Integer)] -> [(Integer, Integer)]
 addVars vs vars = matchDFS
   (vs, vars)
-  (Pair (List Literal) (List (Pair Literal M.Integer)))
+  (Pair (List Literal) (List (Pair Literal IntegralM)))
   [ [mc| ([], _) -> sortBy (\(_, c1) (_, c2) -> opposite (compare c1 c2)) vars |]
   , [mc| ($v : $vs2, $hs ++ (#v, $c) : $ts) ->
           addVars vs2 (hs ++ (v, c + 1) : ts) |]
@@ -81,7 +80,7 @@ addVars vs vars = matchDFS
 deleteVar :: Integer -> [(Integer, Integer)] -> [(Integer, Integer)]
 deleteVar v vars = matchDFS
   vars
-  (Multiset (Pair Literal M.Integer))
+  (Multiset (Pair Literal IntegralM))
   [[mc| (#v, _) : (#(negate v), _) : $vars2 -> vars2 |]]
 
 --
@@ -155,7 +154,7 @@ unitPropagate'' stage cnf trail = matchDFS
 learn :: Integer -> [(Integer, Integer)] -> [Assign] -> (Integer, [Integer])
 learn stage cl trail = matchDFS
   (trail, cl)
-  (Pair (List Assignment) (Multiset (Pair Literal M.Integer))) -- must be matchDFS
+  (Pair (List Assignment) (Multiset (Pair Literal IntegralM))) -- must be matchDFS
   [ [mc| (_, !((_, #stage) : (_, #stage) : _)) ->
           (minimum (map (\(_, c) -> c) cl), map (\(l, _) -> l) cl) |]
   , [mc| (_ ++ deduced ($l, #stage) $ds : $trail2,
@@ -181,7 +180,7 @@ backjump stage trail = matchDFS
 
 guess vars trail = matchDFS
   (vars, trail)
-  (Pair (List (Pair Literal M.Integer)) (List Assignment)) -- must be matchDFS
+  (Pair (List (Pair Literal IntegralM)) (List Assignment)) -- must be matchDFS
   [ [mc| (_ ++ ($l, _) : _,
                (!(_ ++ whichever ((#l | #(negate l)), _) : _))) ->
           negate l |]

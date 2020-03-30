@@ -5,8 +5,7 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 
-import           Control.Egison          hiding ( Integer )
-import qualified Control.Egison.Matcher        as M
+import           Control.Egison
 
 import           Data.List                      ( nub
                                                 , delete

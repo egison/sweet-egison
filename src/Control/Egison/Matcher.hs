@@ -1,13 +1,11 @@
 module Control.Egison.Matcher
   ( Matcher
   , Something(..)
-  , Eql(..)
-  , Integer(..)
+  , EqM(..)
+  , IntegralM(..)
   )
 where
 
-import           Prelude                 hiding ( Integer )
-import           Control.Monad                  ( MonadPlus(..) )
 import           Data.Query.Pattern.Value       ( ValuePattern(..) )
 
 
@@ -19,13 +17,13 @@ data Something = Something
 instance Matcher Something a
 
 
-data Eql = Eql
+data EqM = EqM
 
-instance Eq a => Matcher Eql a
-instance Eq a => ValuePattern Eql a
+instance Eq a => Matcher EqM a
+instance Eq a => ValuePattern EqM a
 
 
-data Integer = Integer
+data IntegralM = IntegralM
 
-instance Integral a => Matcher Integer a
-instance Integral a => ValuePattern Integer a
+instance Integral a => Matcher IntegralM a
+instance Integral a => ValuePattern IntegralM a
