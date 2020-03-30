@@ -31,8 +31,6 @@ source-repository head
 
 library
   hs-source-dirs:     src
-
-  -- cabal-fmt: expand src
   exposed-modules:
     Control.Egison
     Control.Egison.Match
@@ -50,6 +48,7 @@ library
     Data.Query.Pattern.Value
     Data.Query.QQ
 
+  other-modules:      Data.Query.Pattern.InternalTH
   build-depends:
       base                        >=4.8   && <5
     , egison-pattern-src          ^>=0.2.1

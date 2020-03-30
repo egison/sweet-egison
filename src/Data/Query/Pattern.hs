@@ -1,6 +1,7 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE GADTs #-}
 
 module Data.Query.Pattern
@@ -13,6 +14,8 @@ import           Control.Monad.Search           ( MonadSearch )
 import           Data.Kind                      ( Type )
 import           Data.Proxy                     ( Proxy(..) )
 
+import           Data.Query.Pattern.InternalTH  ( makeToTupleInstance )
+
 
 data HList (xs :: [Type]) where
   HNil ::HList '[]
@@ -22,21 +25,7 @@ class ToTuple (xs :: [Type]) where
   type Tupled xs :: Type
   tupled :: HList xs -> Tupled xs
 
-instance ToTuple '[] where
-  type Tupled '[] = ()
-  tupled HNil = ()
-
-instance ToTuple '[a] where
-  type Tupled '[a] = a
-  tupled (HCons x1 HNil) = x1
-
-instance ToTuple '[t1, t2] where
-  type Tupled '[t1, t2] = (t1, t2)
-  tupled (HCons x1 (HCons x2 HNil)) = (x1, x2)
-
-instance ToTuple '[t1, t2, t3] where
-  type Tupled '[t1, t2, t3] = (t1, t2, t3)
-  tupled (HCons x1 (HCons x2 (HCons x3 HNil))) = (x1, x2, x3)
+$(traverse makeToTupleInstance [0..7])
 
 class ToProxyList (x :: [Type]) where
   type ProxyList x :: [Type]
