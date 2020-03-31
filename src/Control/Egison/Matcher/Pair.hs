@@ -1,3 +1,11 @@
+-- |
+--
+-- Module:      Control.Egison.Matcher.Pair
+-- Description: Pair matcher
+-- Stability:   experimental
+--
+-- This module defines 'Pair' matcher and operations on it.
+
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE QuasiQuotes #-}
 
@@ -17,6 +25,7 @@ import           Control.Egison.Match           ( match'
                                                 )
 
 
+-- | Simple matcher for pairs.
 data Pair m1 m2 = Pair m1 m2
 
 instance (Matcher m1 tgt1, Matcher m2 tgt2) => Matcher (Pair m1 m2) (tgt1, tgt2)
@@ -37,6 +46,7 @@ instance (Matcher m1 tgt1, Matcher m2 tgt2, ValuePattern m1 tgt1, ValuePattern m
       <> [mc| _ -> mzero |]
 
 {-# INLINABLE pair #-}
+-- | Type-specialized alias to 'tuple2'.
 pair
   :: (Matcher m1 tgt1, Matcher m2 tgt2)
   => Pattern (Pair m1 m2) (tgt1, tgt2) '[m1, m2] '[tgt1, tgt2]

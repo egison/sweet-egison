@@ -1,3 +1,11 @@
+-- |
+--
+-- Module:      Control.Egison.Matcher.List
+-- Description: List matcher
+-- Stability:   experimental
+--
+-- This module defines 'List' matcher and operations on it.
+
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE QuasiQuotes #-}
 
@@ -17,6 +25,7 @@ import           Control.Egison.Match           ( match'
                                                 )
 
 
+-- | 'List' matcher is a matcher for collections that matches as if they're normal lists.
 newtype List m = List m
 
 instance Matcher m tgt => Matcher (List m) [tgt]

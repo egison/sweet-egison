@@ -1,3 +1,11 @@
+-- |
+--
+-- Module:      Data.Query.Pattern.InternalTH
+-- Description: Supporting TH definitions
+-- Stability:   experimental
+--
+-- Supporting module that contains TH functions.
+
 {-# LANGUAGE CPP #-}
 
 module Data.Query.Pattern.InternalTH
@@ -16,6 +24,7 @@ import           Language.Haskell.TH.Syntax     ( Q
 import           Language.Haskell.TH.Lib
 
 
+-- | @'makeToTupleInstance' n@ generates @ToTuple@ instance for n-tuples.
 makeToTupleInstance :: Int -> Q Dec
 makeToTupleInstance n = do
   tys  <- genNames "a"

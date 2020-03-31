@@ -1,3 +1,11 @@
+-- |
+--
+-- Module:      Control.Egison.Matcher.Multiset
+-- Description: Multiset matcher
+-- Stability:   experimental
+--
+-- This module defines 'Multiset' matcher and operations on it.
+
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE QuasiQuotes #-}
 
@@ -19,6 +27,7 @@ import           Control.Egison.Match           ( match'
                                                 )
 
 
+-- | 'Multiset' matcher is a matcher for collections that matches as if they're multisets.
 newtype Multiset m = Multiset m
 
 instance Matcher m tgt => Matcher (Multiset m) [tgt]

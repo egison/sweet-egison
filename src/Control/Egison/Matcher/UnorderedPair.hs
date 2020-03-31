@@ -1,3 +1,11 @@
+-- |
+--
+-- Module:      Control.Egison.Matcher.UnorderedPair
+-- Description: UnorderedPair matcher
+-- Stability:   experimental
+--
+-- This module defines 'UnorderedPair' matcher and operations on it.
+
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE QuasiQuotes #-}
 
@@ -18,6 +26,7 @@ import           Control.Egison.Match           ( match'
                                                 )
 
 
+-- | 'UnorderedPair' is a matcher for pairs that ignores the order of pairs.
 newtype UnorderedPair m = UnorderedPair m
 
 instance Matcher m tgt => Matcher (UnorderedPair m) (tgt, tgt)
@@ -38,6 +47,7 @@ instance (Matcher m tgt, ValuePattern m tgt) => ValuePattern (UnorderedPair m) (
       <> [mc| _ -> mzero |]
 
 {-# INLINABLE upair #-}
+-- | Type-specialized alias to 'tuple2'.
 upair
   :: Matcher m tgt => Pattern (UnorderedPair m) (tgt, tgt) '[m, m] '[tgt, tgt]
 upair = tuple2

@@ -1,3 +1,11 @@
+-- |
+--
+-- Module:      Data.Query
+-- Description: Types and combinators for data queries
+-- Stability:   experimental
+--
+-- This module defines types and combinators for data queries, the intuitive way to query against various kind of data using pattern matching.
+
 module Data.Query
   ( Query(..)
   , SearchStrategy
@@ -15,6 +23,9 @@ import           Control.Monad.Search           ( MonadSearch
                                                 )
 
 
+-- | Type of queries.
+--
+-- We can construct 'Query' values using the quasi-quoter provided in 'Data.Query.QQ'.
 newtype Query strategy tag tgt out = Query { unQuery :: Proxy tag -> tgt -> strategy out }
 
 instance MonadSearch m => Semigroup (Query m tag tgt out) where
@@ -40,6 +51,9 @@ instance SearchStrategy BFS
 instance SearchStrategy DFS
 
 {-# INLINE query #-}
+-- | @'query' \@tag q tgt@ performs a search specifies by @q@ against @tgt@ tagged with @tag@.
+--
+-- You can optionally specify searching strategy like @'query' @tag @'DFS'@. This searching strategy is defaulted to 'BFS' if not specified.
 query
   :: forall tag s tgt out
    . SearchStrategy s
@@ -49,6 +63,7 @@ query
 query = query'
 
 {-# INLINE query' #-}
+-- | 'query'' is equivalent to 'query', expect this does not default searching strategy to 'BFS'.
 query'
   :: forall tag s tgt out
    . MonadSearch s

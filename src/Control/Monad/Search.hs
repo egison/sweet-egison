@@ -1,3 +1,11 @@
+-- |
+--
+-- Module:      Control.Monad.Search
+-- Description: Monad for pattern matching
+-- Stability:   experimental
+--
+-- This module defines 'MonadSearch', 'MonadPlus' plus some combinators necessary for effective pattern matching.
+
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE DeriveAnyClass #-}
 
@@ -19,7 +27,7 @@ import           Control.Monad.Logic            ( MonadLogic(..)
                                                 )
 
 
--- | MonadSearch. Represents searches with backtracking.
+-- | 'MonadSearch' represents searches with backtracking.
 class MonadPlus m => MonadSearch m where
   collect :: m a -> [a]
   guarded :: m () -> m a -> m a
@@ -45,7 +53,7 @@ instance MonadLogic m => MonadLogic (SkipNothing m) where
     Just (Nothing, m') -> msplit . SkipNothing $ MaybeT m'
     Nothing            -> pure Nothing
 
--- | Interleaving BFS Monad
+-- | Interleaving BFS implementation of 'MonadSearch'.
 newtype BFS a = BFS { unBFS :: MaybeT Logic a }
   deriving newtype (Functor, Applicative, Monad, Foldable)
   deriving Alternative via Logic :.: Maybe
@@ -62,7 +70,7 @@ instance MonadSearch BFS where
     Just x  -> runMaybeT . unBFS $ f x
     Nothing -> pure Nothing
 
--- | DFS Monad
+-- | DFS implementation of 'MonadSearch'.
 newtype DFS a = DFS { unDFS :: [a] }
   deriving newtype (Functor, Applicative, Monad, Foldable, Alternative, MonadPlus, MonadLogic)
 

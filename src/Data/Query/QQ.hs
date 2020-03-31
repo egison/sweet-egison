@@ -1,3 +1,11 @@
+-- |
+--
+-- Module:      Data.Query.QQ
+-- Description: Quasi-quoter to construct queries
+-- Stability:   experimental
+--
+-- This module provides 'QuasiQuoter' that builds 'Query' from nice pattern expressions.
+
 {-# LANGUAGE TemplateHaskell #-}
 
 module Data.Query.QQ
@@ -61,6 +69,7 @@ import           Language.Egison.Parser.Pattern.Mode.Haskell.TH
                                                 ( ParseMode(..) )
 
 
+-- | Quasi-quoter for pattern expressions.
 q :: QuasiQuoter
 q = QuasiQuoter { quoteExp  = compile
                 , quotePat  = undefined

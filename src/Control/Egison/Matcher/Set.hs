@@ -1,3 +1,11 @@
+-- |
+--
+-- Module:      Control.Egison.Matcher.Set
+-- Description: Set matcher
+-- Stability:   experimental
+--
+-- This module defines 'Set' matcher and operations on it.
+
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE QuasiQuotes #-}
 
@@ -22,6 +30,7 @@ import           Control.Egison.Match           ( match'
                                                 )
 
 
+-- | 'Set' matcher is a matcher for collections that matches as if they're sets.
 newtype Set m = Set m
 
 instance Matcher m tgt => Matcher (Set m) [tgt]
