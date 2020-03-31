@@ -22,10 +22,10 @@ data Pair m1 m2 = Pair m1 m2
 instance (Matcher m1 tgt1, Matcher m2 tgt2) => Matcher (Pair m1 m2) (tgt1, tgt2)
 
 instance (Matcher m1 tgt1, Matcher m2 tgt2) => Tuple2Pattern (Pair m1 m2) (tgt1, tgt2) where
-  type Fst (tgt1, tgt2) = tgt1
-  type Snd (tgt1, tgt2) = tgt2
-  type FstTag (Pair m1 m2) = m1
-  type SndTag (Pair m1 m2) = m2
+  type Target2_1 (tgt1, tgt2) = tgt1
+  type Target2_2 (tgt1, tgt2) = tgt2
+  type Tag2_1 (Pair m1 m2) = m1
+  type Tag2_2 (Pair m1 m2) = m2
 
   {-# INLINABLE tuple2 #-}
   tuple2 _ (x, y) = pure (x, y)

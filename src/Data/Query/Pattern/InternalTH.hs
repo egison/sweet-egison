@@ -2,6 +2,7 @@
 
 module Data.Query.Pattern.InternalTH
   ( makeToTupleInstance
+  , makeTuplePatternClass
   )
 where
 
@@ -46,3 +47,43 @@ makeWithNames tyNames valNames = instanceD nullCxt instHead [typeDecl, valDecl]
   typeDecl = tySynInstD (mkName "Tupled") (tySynEqn [tyList] tyTuple)
 #endif
   valDecl = funD (mkName "tupled") [clause [valHListPat] (normalB valTuple) []]
+
+
+-- | @makeTuplePatternClass n@ generates @Tuple*Pattern@ class for n-tuples.
+makeTuplePatternClass :: Int -> Q Dec
+makeTuplePatternClass n = classD nullCxt
+                                 className
+                                 [plainTV tagTyName, plainTV tgtTyName]
+                                 []
+                                 (nameDec : tagFamilyDecs ++ tgtFamilyDecs)
+ where
+  nullCxt      = pure []
+  className    = mkName $ "Tuple" ++ show n ++ "Pattern"
+  tagTyName    = mkName "t"
+  tgtTyName    = mkName "a"
+  tuplePatName = mkName $ "tuple" ++ show n
+  elemTagTyName m = mkName $ "Tag" ++ show n ++ "_" ++ show m
+  elemTgtTyName m = mkName $ "Target" ++ show n ++ "_" ++ show m
+  tagFamilyDecs = map tagFamilyDec [1 .. n]
+  tgtFamilyDecs = map tgtFamilyDec [1 .. n]
+  tagFamilyDec m =
+    openTypeFamilyD (elemTagTyName m) [plainTV tagTyName] noSig Nothing
+  tgtFamilyDec m =
+    openTypeFamilyD (elemTgtTyName m) [plainTV tgtTyName] noSig Nothing
+  nameDec = sigD tuplePatName $ appT
+    (appT (appT (appT (conT $ mkName "Pattern") (varT tagTyName)) (varT tgtTyName))
+          tagTyList
+    )
+    tgtTyList
+  tagTyList = foldr
+    (\m -> appT
+      (appT promotedConsT (appT (conT $ elemTagTyName m) (varT tagTyName)))
+    )
+    promotedNilT
+    [1 .. n]
+  tgtTyList = foldr
+    (\m -> appT
+      (appT promotedConsT (appT (conT $ elemTgtTyName m) (varT tgtTyName)))
+    )
+    promotedNilT
+    [1 .. n]

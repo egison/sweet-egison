@@ -23,10 +23,10 @@ newtype UnorderedPair m = UnorderedPair m
 instance Matcher m tgt => Matcher (UnorderedPair m) (tgt, tgt)
 
 instance Matcher m tgt => Tuple2Pattern (UnorderedPair m) (tgt, tgt) where
-  type Fst (tgt, tgt) = tgt
-  type Snd (tgt, tgt) = tgt
-  type FstTag (UnorderedPair m) = m
-  type SndTag (UnorderedPair m) = m
+  type Target2_1 (tgt, tgt) = tgt
+  type Target2_2 (tgt, tgt) = tgt
+  type Tag2_1 (UnorderedPair m) = m
+  type Tag2_2 (UnorderedPair m) = m
 
   {-# INLINABLE tuple2 #-}
   tuple2 _ (x, y) = pure (x, y) `mplus` pure (y, x)
