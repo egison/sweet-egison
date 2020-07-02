@@ -30,10 +30,11 @@ instance Matcher Something a
 
 class Eq t => ValuePattern m t where
   value :: t -> Pattern () m t () ()
+  default value :: Eq t => t -> Pattern () m t () ()
+  value e () _ v = if e == v then pure ((), ()) else mzero
 
 -- | Matcher that can handle value patterns of 'Eq' types.
 data Eql = Eql
 
 instance Eq a => Matcher Eql a
-instance Eq a => ValuePattern Eql a where
-  value e () _ v = if e == v then pure ((), ()) else mzero
+instance Eq a => ValuePattern Eql a
