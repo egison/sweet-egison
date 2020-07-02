@@ -21,6 +21,11 @@ pmember :: Eq a => a -> [a] -> Bool
 pmember x xs =
   match dfs xs (Multiset Eql) [[mc| #x : _ -> True |], [mc| _ -> False |]]
 
+punique :: Eq a => [a] -> [a]
+punique xs =
+  matchAll dfs xs (List Eql) [[mc| _ ++ $x : !(_ ++ #x : _) -> x |]]
+
+
 test_something :: [TestTree]
 test_something =
   [
@@ -65,6 +70,9 @@ test_list =
     $ assertEqual "simple" [2, 4, 6]
     $ take 3
     $ pmap (* 2) [1 ..]
+  , testCase "'unique' defined using matchAllDFS"
+    $ assertEqual "simple" [1,3,5,2,4]
+    $ punique [1,2,3,4,5,2,4]
   ]
 
 test_multiset :: [TestTree]
