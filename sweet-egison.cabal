@@ -35,6 +35,7 @@ library
     Control.Egison
     Control.Egison.Match
     Control.Egison.Matcher
+    Control.Egison.Matcher.Collection
     Control.Egison.QQ
 
   build-depends:
@@ -71,6 +72,8 @@ library
     TupleSections
     TypeFamilies
     TypeOperators
+    TemplateHaskell
+    QuasiQuotes
 
 test-suite test
   type:               exitcode-stdio-1.0

@@ -10,7 +10,7 @@
 
 module Control.Egison.Match
   ( matchAll
---  , matchAllDFS
+  , match
   )
 where
 
@@ -32,3 +32,13 @@ matchAll
   -> [(m, t) -> s r]
   -> [r]
 matchAll strategy target matcher bs = concat (map (\b -> toList (strategy (matcher, target) >>= b)) bs)
+
+{-# INLINABLE match #-}
+match
+  :: (Matcher m t, MonadSearch s)
+  => ((m, t) -> s (m, t))
+  -> t
+  -> m
+  -> [(m, t) -> s r]
+  -> r
+match strategy target matcher bs = head (matchAll strategy target matcher bs)

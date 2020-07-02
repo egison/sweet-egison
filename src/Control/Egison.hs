@@ -11,8 +11,9 @@ module Control.Egison
   )
 where
 
-import           Control.Monad.Search          as X
-import           Control.Egison.Match          as X
-import           Control.Egison.Matcher        as X
-import           Control.Egison.QQ             as X
+import           Control.Monad.Search              as X
+import           Control.Egison.Match              as X
+import           Control.Egison.Matcher            as X
+import           Control.Egison.Matcher.Collection as X
+import           Control.Egison.QQ                 as X
 
