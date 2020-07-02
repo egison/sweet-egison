@@ -54,7 +54,7 @@ instance Matcher m t => CollectionPattern (List m) [t] where
   cons _ _ [] = mzero
   cons _ (List m) (x : xs) = pure ((m, List m), (x, xs))
   {-# INLINABLE join #-}
-  join (WC, _) m xs = map (\ts -> ((m, m), ([], ts))) (tails xs)
+  join (WC, _) m xs = map (\ts -> ((m, m), (undefined, ts))) (tails xs)
   join _ m []       = pure ((m, m), ([], []))
   join ps m (x : xs) = pure ((m, m), ([], x : xs)) `mplus` do
     (om, (ys, zs)) <- join ps m xs
@@ -71,7 +71,7 @@ instance Matcher m t => CollectionPattern (Multiset m) [t] where
   nil _ _ [] = pure ((), ())
   nil _ _ _ = mzero
   {-# INLINE cons #-}
-  cons (_, WC) (Multiset m) xs = map (\x -> ((m, Multiset m), (x, []))) xs
+  cons (_, WC) (Multiset m) xs = map (\x -> ((m, Multiset m), (x, undefined))) xs
   cons _ (Multiset m) xs = map (\(y, ys) -> ((m, Multiset m), (y, ys))) $ matchAll dfs xs (List Something) [[mc| $hs ++ $x : $ts -> (x, hs ++ ts) |]]
   {-# INLINABLE join #-}
   join = undefined
