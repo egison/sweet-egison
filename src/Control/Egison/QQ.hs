@@ -1,6 +1,6 @@
 -- |
 --
--- Module:      Data.Query.QQ
+-- Module:      Control.Egison.QQ
 -- Description: Quasi-quoter to construct queries
 -- Stability:   experimental
 --
@@ -8,8 +8,8 @@
 
 {-# LANGUAGE TemplateHaskell #-}
 
-module Data.Query.QQ
-  ( q
+module Control.Egison.QQ
+  ( mc
   )
 where
 
@@ -17,8 +17,6 @@ where
 import           Data.Functor                   ( void )
 import           Control.Monad                  ( MonadPlus(..) )
 import           Control.Monad.Search           ( MonadSearch(..) )
-import           Data.Query                     ( Query(..) )
-import           Data.Query.Pattern             ( apply )
 
 -- main
 import           Data.Maybe                     ( mapMaybe )
@@ -67,15 +65,15 @@ import           Language.Egison.Parser.Pattern ( Fixity(..)
                                                 )
 import           Language.Egison.Parser.Pattern.Mode.Haskell.TH
                                                 ( ParseMode(..) )
-
+import           Control.Egison.Matcher         ( value )
 
 -- | Quasi-quoter for pattern expressions.
-q :: QuasiQuoter
-q = QuasiQuoter { quoteExp  = compile
-                , quotePat  = undefined
-                , quoteType = undefined
-                , quoteDec  = undefined
-                }
+mc :: QuasiQuoter
+mc = QuasiQuoter { quoteExp  = compile
+                 , quotePat  = undefined
+                 , quoteType = undefined
+                 , quoteDec  = undefined
+                 }
 
 listFixities :: [ParseFixity Name String]
 listFixities =
@@ -118,100 +116,43 @@ parsePatternExpr haskellMode content = case Pat.parseNonGreedy mode content of
   Right x -> pure x
   where mode = ParseMode { haskellMode, fixities = Just listFixities }
 
-
-data TaggedTarget =
-  TaggedTarget { proxy  :: Name
-               , target :: Name
-               }
-
 compilePattern :: Pat.Expr Name Name Exp -> Exp -> Q Exp
 compilePattern pat body = do
-  tgt <- newTaggedTarget
-  tr  <- go pat tgt
-  pure . AppE (ConE queryName) . LamE [boundTag pat tgt, boundTgt pat tgt] $ tr
-    s
+  mName <- newName "mat"
+  tName <- newName "tgt"
+  body' <- go pat mName tName (AppE (VarE 'pure) body)
+  pure $ LamE [TupP [VarP mName, VarP tName]] body'
  where
-  s = AppE (VarE pureName) body
-  go :: Pat.Expr Name Name Exp -> TaggedTarget -> Q (Exp -> Exp)
-  go Pat.Wildcard _ = pure id
-  go (Pat.Variable x) TaggedTarget { target } =
-    pure $ \k -> let_ (VarP x) (VarE target) k
-  go (Pat.Value e) t = pure $ AppE guardExp
-   where
-    guardExp = AppE
-      (VarE guardedName)
-      (AppE (VarE 'Data.Functor.void)
-            (applyPat (AppE (VarE $ mkName "value") e) t)
-      )
-  go (Pat.Predicate e) TaggedTarget { target } = pure $ AppE guardExp
-    where guardExp = AppE (VarE guardedName) (guard_ (AppE e (VarE target)))
-  go (Pat.And p1 p2) t = do
-    t1 <- go p1 t
-    t2 <- go p2 t
-    pure $ t1 . t2
-  go (Pat.Or p1 p2) t = do
-    t1 <- go p1 t
-    t2 <- go p2 t
-    pure $ \k ->
-      AppE (AppE (VarE plusName) (t1 pureU)) (t2 pureU)
-        `sbind_` LamE [TupP []] k
-  go (Pat.Not p) t = do
-    tr <- go p t
-    pure $ \k -> AppE (VarE lnotName) (tr pureU) `sbind_` LamE [TupP []] k
-  -- TODO: less ad-hoc optimization
-  go (Pat.Infix n Pat.Wildcard p2) t | nameBase n == "join" =
-    go (Pattern (mkName "spread") [p2]) t
-  go (Pat.Infix n p1 p2) t = go (Pattern n [p1, p2]) t
-  go (Pat.Collection ps) t = go (desugarCollection ps) t
-  go (Pat.Tuple      ps) t = go (desugarTuple ps) t
-  go (Pat.Pattern n ps ) t = do
-    xs <- mapM (\p -> (p, ) <$> newTaggedTarget) ps
-    tr <- foldrM go' id xs
-    pure $ \k -> applyPat (VarE n) t
-      `sbind_` LamE [TupP [expandTagPats xs, expandTgtPats xs]] (tr k)
-   where
-    go' (p, t') acc = do
-      f <- go p t'
-      pure $ f . acc
-  newTaggedTarget = TaggedTarget <$> newName "tag" <*> newName "tgt"
-  expandTgtPats   = TupP . map (uncurry boundTgt)
-  expandTagPats   = TupP . map (uncurry boundTag)
-  sbind_ x f = ParensE (UInfixE (ParensE x) (VarE sbindOp) (ParensE f))
   let_ p e1 = LetE [ValD p (NormalB e1) []]
-  guard_ b =
-    CondE b (AppE (VarE pureName) (TupE [])) (VarE 'Control.Monad.mzero)
-  applyPat p TaggedTarget { proxy, target } = AppE
-    (AppE (AppE (VarE 'Data.Query.Pattern.apply) p) (VarE proxy))
-    (VarE target)
-  queryName   = 'Data.Query.Query
-  guardedName = 'Control.Monad.Search.guarded
+  sbind_ x f = ParensE (UInfixE (ParensE x) (VarE sbindOp) (ParensE f))
+  compose_ f g = ParensE (UInfixE (ParensE f) (VarE '(.)) (ParensE g))
   plusName    = 'Control.Monad.mplus
-  pureName    = 'pure
-  sbindOp     = '(Control.Monad.Search.>->)
-  lnotName    = 'Control.Monad.Search.exclude
-  pureU       = AppE (VarE pureName) (TupE [])
-
-boundTag :: Pat.Expr Name Name Exp -> TaggedTarget -> Pat
-boundTag p TaggedTarget { proxy } | shouldBind p = VarP proxy
-                                  | otherwise    = WildP
- where
-  shouldBind Pat.Wildcard      = False
-  shouldBind (Pat.Predicate _) = False
-  shouldBind (Pat.Variable  _) = False
-  shouldBind (Pat.And a b    ) = shouldBind a || shouldBind b
-  shouldBind (Pat.Or  a b    ) = shouldBind a || shouldBind b
-  shouldBind (Pat.Not x      ) = shouldBind x
-  shouldBind _                 = True
-
-boundTgt :: Pat.Expr Name Name Exp -> TaggedTarget -> Pat
-boundTgt p TaggedTarget { target } | shouldBind p = VarP target
-                                   | otherwise    = WildP
- where
-  shouldBind Pat.Wildcard  = False
-  shouldBind (Pat.And a b) = shouldBind a || shouldBind b
-  shouldBind (Pat.Or  a b) = shouldBind a || shouldBind b
-  shouldBind (Pat.Not x  ) = shouldBind x
-  shouldBind _             = True
+  sbindOp     = '(>>=)
+  lnotName    = 'Control.Monad.Search.lnot
+  go :: Pat.Expr Name Name Exp -> Name -> Name -> Exp -> Q Exp
+  go Pat.Wildcard _ _ body = pure body
+  go (Pat.Variable x) _ tName body = pure $ let_ (VarP x) (VarE tName) body
+  go (Pat.Pattern cName ps) mName tName body = do
+    mNames <- mapM (\_ -> newName "m") ps
+    tNames <- mapM (\_ -> newName "t") ps
+    body' <- foldrM go' body (zip3 ps mNames tNames)
+    pure $ AppE (VarE 'fromList) (AppE (AppE (VarE cName) (VarE mName)) (VarE tName)) `sbind_` LamE [TupP [TupP (map VarP mNames), TupP (map VarP tNames)]] body'
+   where
+    go' :: (Pat.Expr Name Name Exp, Name, Name) -> Exp -> Q Exp
+    go' (p, m, t) b = go p m t b
+  go (Pat.Value e) mName tName body = pure $ AppE (VarE 'fromList) (AppE (AppE (AppE (VarE 'value) e) (VarE mName)) (VarE tName)) `sbind_` LamE [WildP] body
+  go (Pat.And p1 p2) mName tName body = do
+    go p2 mName tName body >>= go p1 mName tName
+  go (Pat.Or p1 p2) mName tName body = do
+    r1 <- go p1 mName tName (AppE (VarE 'pure) (TupE []))
+    r2 <- go p2 mName tName (AppE (VarE 'pure) (TupE []))
+    pure $ AppE (AppE (VarE plusName) r1) r2 `sbind_` LamE [TupP []] body
+  go (Pat.Not p) mName tName body = do
+    r <- go p mName tName (AppE (VarE 'pure) (TupE []))
+    pure $ AppE (VarE lnotName) r `sbind_` LamE [TupP []] body
+  go (Pat.Infix n p1 p2) mName tName body = go (Pattern n [p1, p2]) mName tName body
+--  go (Pat.Collection ps) t = go (desugarCollection ps) t
+--  go (Pat.Tuple      ps) t = go (desugarTuple ps) t
 
 desugarCollection :: [Pat.Expr Name Name Exp] -> Pat.Expr Name Name Exp
 desugarCollection = foldr go $ Pat.Pattern (mkName "nil") []

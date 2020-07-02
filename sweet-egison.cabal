@@ -35,20 +35,8 @@ library
     Control.Egison
     Control.Egison.Match
     Control.Egison.Matcher
-    Control.Egison.Matcher.List
-    Control.Egison.Matcher.Multiset
-    Control.Egison.Matcher.Pair
-    Control.Egison.Matcher.Set
-    Control.Egison.Matcher.UnorderedPair
-    Control.Monad.Search
-    Data.Query
-    Data.Query.Pattern
-    Data.Query.Pattern.Collection
-    Data.Query.Pattern.Tuple
-    Data.Query.Pattern.Value
-    Data.Query.QQ
+    Control.Egison.QQ
 
-  other-modules:      Data.Query.Pattern.InternalTH
   build-depends:
       base                        >=4.8   && <5
     , egison-pattern-src          ^>=0.2.1
@@ -58,6 +46,7 @@ library
     , logict                      ^>=0.7.0
     , template-haskell
     , transformers
+    , backtracking
 
   ghc-options:
     -Wall -Wcompat -Widentities -Wincomplete-record-updates
@@ -107,35 +96,3 @@ test-suite test
   -- cabal-fmt: expand test
   other-modules:      Control.EgisonSpec
   build-tool-depends: tasty-discover:tasty-discover -any
-
-benchmark comb2
-  type:               exitcode-stdio-1.0
-  hs-source-dirs:     benchmark
-  main-is:            comb2.hs
-  ghc-options:        -O3 -Wall -threaded -rtsopts -with-rtsopts=-N
-  default-language:   Haskell2010
-  build-depends:
-      base
-    , criterion
-    , sweet-egison
-
-  default-extensions:
-    QuasiQuotes
-    TemplateHaskell
-    TypeApplications
-
-benchmark perm2
-  type:               exitcode-stdio-1.0
-  hs-source-dirs:     benchmark
-  main-is:            perm2.hs
-  ghc-options:        -O3 -Wall -threaded -rtsopts -with-rtsopts=-N
-  default-language:   Haskell2010
-  build-depends:
-      base
-    , criterion
-    , sweet-egison
-
-  default-extensions:
-    QuasiQuotes
-    TemplateHaskell
-    TypeApplications

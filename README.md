@@ -111,6 +111,21 @@ For example, `[mc| $xs ++ $x : $ys -> (xs, x, ys) |]` is translated as follows:
       pure (xs, x, ys)
 ```
 
+```haskell
+\(mat, tgt) ->
+  join mat tgt >>= \((m0, m1), (xs, d0)) ->
+    cons m1 d0 >>= \((m2, m3), (x, ys)) ->
+      pure (xs, x, ys)
+```
+
+```haskell
+-- $hs ++ $ts -> (hs, ts)
+\tgt ->
+  join tgt >>= \(hs, ts) ->
+     pure (hs, ts)
+```
+
+
 `:` and `++` are synonyms of `cons` and `join` respectively, and desugared in that way during translation. Here, pattern constructor names such as `join` and `cons` are overloaded over matchers of collections to archive the ad-hoc polymorphism of patterns.
 
 ## Bibliography
