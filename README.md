@@ -130,5 +130,5 @@ For example, `[mc| $xs ++ $x : $ys -> (xs, x, ys) |]` is translated as follows:
 
 ## Bibliography
 
-- [1] Egi, Satoshi, and Yuichi Nishiwaki. "Non-linear pattern matching with backtracking for non-free data types." Asian Symposium on Programming Languages and Systems. Springer, Cham, 2018.
-- [2] Egi, Satoshi, and Yuichi Nishiwaki. "Functional Programming in Pattern-Match-Oriented Programming Style." arXiv preprint arXiv:2002.06176 (2020).
+- [1] Satoshi Egi and Yuichi Nishiwaki: Functional Programming in Pattern-Match-Oriented Programming Style, The Art, Science, and Engineering of Programming, 2020, Vol. 4, Issue 3, Article 7, DOI: 10.22152/programming-journal.org/2020/4/7
+- [2] Satoshi Egi and Yuichi Nishiwaki: Non-linear Pattern Matching with Backtracking for Non-free Data Types, APLAS 2018 - Asian Symposium on Programming Languages and Systems, DOI: 11.1007/978-3-030-02768-1_1
