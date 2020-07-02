@@ -20,5 +20,5 @@ data Pair m1 m2 = Pair m1 m2
 
 instance (Matcher m1 t1, Matcher m2 t2) => Matcher (Pair m1 m2) (t1, t2)
 
-tuple2 :: Pattern (Pair m1 m2) (t1, t2) (m1, m2) (t1, t2)
-tuple2 (Pair m1 m2) (t1, t2) = pure ((m1, m2), (t1, t2))
+tuple2 :: Pattern (PP, PP) (Pair m1 m2) (t1, t2) (m1, m2) (t1, t2)
+tuple2 _ (Pair m1 m2) (t1, t2) = pure ((m1, m2), (t1, t2))

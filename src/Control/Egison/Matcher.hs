@@ -18,7 +18,7 @@ where
 import           Control.Monad                  ( MonadPlus(..) )
 
 -- | Type synonym for patterns.
-type Pattern im it om ot = im -> it -> [(om, ot)]
+type Pattern ps im it om ot = ps -> im -> it -> [(om, ot)]
 
 -- | Class for matchers. @'Matcher' m tgt@ denotes that @m@ is a matcher for @tgt@.
 class Matcher m tgt
@@ -29,11 +29,11 @@ data Something = Something
 instance Matcher Something a
 
 class Eq t => ValuePattern m t where
-  value :: t -> Pattern m t () ()
+  value :: t -> Pattern () m t () ()
 
 -- | Matcher that can handle value patterns of 'Eq' types.
 data Eql = Eql
 
 instance Eq a => Matcher Eql a
 instance Eq a => ValuePattern Eql a where
-  value e _ v = if e == v then pure ((), ()) else mzero
+  value e () _ v = if e == v then pure ((), ()) else mzero

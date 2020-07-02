@@ -10,6 +10,7 @@
 
 module Control.Egison.QQ
   ( mc
+  , PP(..)
   )
 where
 
@@ -131,15 +132,7 @@ compilePattern pat body = do
   go :: Pat.Expr Name Name Exp -> Name -> Name -> Exp -> Q Exp
   go Pat.Wildcard _ _ body = pure body
   go (Pat.Variable x) _ tName body = pure $ let_ (VarP x) (VarE tName) body
-  go (Pat.Pattern cName ps) mName tName body = do
-    mNames <- mapM (\_ -> newName "m") ps
-    tNames <- mapM (\_ -> newName "t") ps
-    body' <- foldrM go' body (zip3 ps mNames tNames)
-    pure $ AppE (VarE 'fromList) (AppE (AppE (VarE cName) (VarE mName)) (VarE tName)) `sbind_` LamE [TupP [TupP (map VarP mNames), TupP (map VarP tNames)]] body'
-   where
-    go' :: (Pat.Expr Name Name Exp, Name, Name) -> Exp -> Q Exp
-    go' (p, m, t) b = go p m t b
-  go (Pat.Value e) mName tName body = pure $ AppE (VarE 'fromList) (AppE (AppE (AppE (VarE (mkName "value")) e) (VarE mName)) (VarE tName)) `sbind_` LamE [WildP] body
+  go (Pat.Value e) mName tName body = pure $ AppE (VarE 'fromList) (AppE (AppE (AppE (AppE (VarE (mkName "value")) e) (TupE [])) (VarE mName)) (VarE tName)) `sbind_` LamE [TupP [TupP [], TupP []]] body
   go (Pat.And p1 p2) mName tName body = do
     go p2 mName tName body >>= go p1 mName tName
   go (Pat.Or p1 p2) mName tName body = do
@@ -152,6 +145,15 @@ compilePattern pat body = do
   go (Pat.Infix n p1 p2) mName tName body = go (Pattern n [p1, p2]) mName tName body
   go (Pat.Collection ps) mName tName body = go (desugarCollection ps) mName tName body
   go (Pat.Tuple ps) mName tName body = go (desugarTuple ps) mName tName body
+  go (Pat.Pattern cName ps) mName tName body = do
+    mNames <- mapM (\_ -> newName "m") ps
+    tNames <- mapM (\_ -> newName "t") ps
+    let pps = map toPP ps
+    body' <- foldrM go' body (zip3 ps mNames tNames)
+    pure $ AppE (VarE 'fromList) (AppE (AppE (AppE (VarE cName) (TupE pps)) (VarE mName)) (VarE tName)) `sbind_` LamE [TupP [TupP (map VarP mNames), TupP (map VarP tNames)]] body'
+   where
+    go' :: (Pat.Expr Name Name Exp, Name, Name) -> Exp -> Q Exp
+    go' (p, m, t) b = go p m t b
 
 desugarCollection :: [Pat.Expr Name Name Exp] -> Pat.Expr Name Name Exp
 desugarCollection = foldr go $ Pat.Pattern (mkName "nil") []
@@ -160,3 +162,9 @@ desugarCollection = foldr go $ Pat.Pattern (mkName "nil") []
 desugarTuple :: [Pat.Expr Name Name Exp] -> Pat.Expr Name Name Exp
 desugarTuple ps = Pat.Pattern (mkName name) ps
   where name = "tuple" ++ show (length ps)
+
+data PP = WC | GP
+
+toPP :: (Pat.Expr Name Name Exp) -> Exp
+toPP Pat.Wildcard = ConE 'WC
+toPP _ = ConE 'GP
