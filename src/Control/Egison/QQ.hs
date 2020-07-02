@@ -65,7 +65,6 @@ import           Language.Egison.Parser.Pattern ( Fixity(..)
                                                 )
 import           Language.Egison.Parser.Pattern.Mode.Haskell.TH
                                                 ( ParseMode(..) )
-import           Control.Egison.Matcher         ( value )
 
 -- | Quasi-quoter for pattern expressions.
 mc :: QuasiQuoter
@@ -140,7 +139,7 @@ compilePattern pat body = do
    where
     go' :: (Pat.Expr Name Name Exp, Name, Name) -> Exp -> Q Exp
     go' (p, m, t) b = go p m t b
-  go (Pat.Value e) mName tName body = pure $ AppE (VarE 'fromList) (AppE (AppE (AppE (VarE 'value) e) (VarE mName)) (VarE tName)) `sbind_` LamE [WildP] body
+  go (Pat.Value e) mName tName body = pure $ AppE (VarE 'fromList) (AppE (AppE (AppE (VarE (mkName "value")) e) (VarE mName)) (VarE tName)) `sbind_` LamE [WildP] body
   go (Pat.And p1 p2) mName tName body = do
     go p2 mName tName body >>= go p1 mName tName
   go (Pat.Or p1 p2) mName tName body = do
@@ -151,8 +150,8 @@ compilePattern pat body = do
     r <- go p mName tName (AppE (VarE 'pure) (TupE []))
     pure $ AppE (VarE lnotName) r `sbind_` LamE [TupP []] body
   go (Pat.Infix n p1 p2) mName tName body = go (Pattern n [p1, p2]) mName tName body
---  go (Pat.Collection ps) t = go (desugarCollection ps) t
---  go (Pat.Tuple      ps) t = go (desugarTuple ps) t
+  go (Pat.Collection ps) mName tName body = go (desugarCollection ps) mName tName body
+  go (Pat.Tuple ps) mName tName body = go (desugarTuple ps) mName tName body
 
 desugarCollection :: [Pat.Expr Name Name Exp] -> Pat.Expr Name Name Exp
 desugarCollection = foldr go $ Pat.Pattern (mkName "nil") []
