@@ -34,17 +34,24 @@ data Assign = Deduced TaggedLiteral [TaggedLiteral]
 data Assignment = Assignment
 instance Matcher Assignment Assign
 
-deduced :: Pattern (PP, PP) Assignment Assign (Pair Literal Stage, Multiset (Pair Literal Stage)) ((Integer, Integer), [(Integer, Integer)])
-deduced _ _ (Deduced l ls) = pure ((Pair Literal Stage, Multiset (Pair Literal Stage)), (l, ls))
+deduced :: Pattern (PP, PP) Assignment Assign ((Integer, Integer), [(Integer, Integer)])
+deduced _ _ (Deduced l ls) = pure (l, ls)
 deduced _ _ _              = mzero
 
-guessed :: Pattern PP Assignment Assign (Pair Literal Stage) (Integer, Integer)
-guessed _ _ (Guessed l) = pure (Pair Literal Stage, l)
+deducedM Assignment _ = (Pair Literal Stage, Multiset (Pair Literal Stage))
+
+guessed :: Pattern PP Assignment Assign (Integer, Integer)
+guessed _ _ (Guessed l) = pure l
 guessed _ _ _           = mzero
 
-whichever :: Pattern PP Assignment Assign (Pair Literal Stage) (Integer, Integer)
-whichever _ _ (Deduced l _) = pure (Pair Literal Stage, l)
-whichever _ _ (Guessed l  ) = pure (Pair Literal Stage, l)
+guessedM Assignment _ = (Pair Literal Stage)
+
+
+whichever :: Pattern PP Assignment Assign (Integer, Integer)
+whichever _ _ (Deduced l _) = pure l
+whichever _ _ (Guessed l  ) = pure l
+
+whicheverM Assignment _ = (Pair Literal Stage)
 
 --
 -- VSIDS
@@ -218,10 +225,10 @@ main = do
 --  print $ cdcl [] [[]]
 --  print $ cdcl [1] [[1]]
 --  print $ cdcl [1, 2] [[1], [1, 2]]
-  print "Problem 20"
-  print $ cdcl [1 .. 20] problem20 -- 0.038s
---  print "Problem 50"
---  print $ cdcl [1 .. 50] problem50 -- 0.925s
+--  print "Problem 20"
+--  print $ cdcl [1 .. 20] problem20 -- 0.030
+  print "Problem 50"
+  print $ cdcl [1 .. 50] problem50 -- 0.126s
 
 problem20 :: [[Integer]]
 problem20 =

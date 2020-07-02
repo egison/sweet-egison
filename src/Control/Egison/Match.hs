@@ -10,6 +10,7 @@
 
 module Control.Egison.Match
   ( matchAll
+  , matchAllSingle
   , match
   )
 where
@@ -23,7 +24,7 @@ import           Control.Monad.Search           ( MonadSearch(..)
 import           Control.Egison.QQ                  ( mc )
 
 
-{-# INLINABLE matchAll #-}
+{-# INLINE matchAll #-}
 matchAll
   :: (Matcher m t, MonadSearch s)
   => ((m, t) -> s (m, t))
@@ -31,9 +32,19 @@ matchAll
   -> m
   -> [(m, t) -> s r]
   -> [r]
-matchAll strategy target matcher bs = concat (map (\b -> toList (strategy (matcher, target) >>= b)) bs)
+matchAll strategy target matcher bs = concatMap (\b -> toList (strategy (matcher, target) >>= b)) bs
 
-{-# INLINABLE match #-}
+{-# INLINE matchAllSingle #-}
+matchAllSingle
+  :: (Matcher m t, MonadSearch s)
+  => ((m, t) -> s (m, t))
+  -> t
+  -> m
+  -> ((m, t) -> s r)
+  -> [r]
+matchAllSingle strategy target matcher b = toList (strategy (matcher, target) >>= b)
+
+{-# INLINE match #-}
 match
   :: (Matcher m t, MonadSearch s)
   => ((m, t) -> s (m, t))

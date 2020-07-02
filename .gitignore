@@ -3,6 +3,8 @@ dist-newstyle/
 .hsenv/
 *.o
 *.hi
+*.dyn_hi
+*.dyn_o
 cabal.project.local
 .cabal-sandbox/
 cabal.sandbox.config
