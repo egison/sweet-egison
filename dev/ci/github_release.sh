@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
+shopt -s globstar
 
 function main() {
   local -r repo_url="https://github.com/${GITHUB_REPOSITORY}"
@@ -8,12 +9,12 @@ function main() {
 
   local -r release_badge="[![release](${repo_url}/workflows/${GITHUB_WORKFLOW}/badge.svg)](${repo_url}/actions/runs/${GITHUB_RUN_ID})"
   local release_message
-  release_message="$(git tag -l --format='$(contents)' v${version})"
+  release_message="$(git tag -l --format='%(contents)' v${version})"
 
   local package_messages=''
 
   for cabal_file in **/*.cabal; do
-    local package, package_dir
+    local package package_dir
     package="$(sed -e 's/^name:\s*\(.*\)$/\1/;t;d' $cabal_file)"
     package_dir="$(dirname $cabal_file)"
 
