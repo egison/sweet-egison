@@ -5,9 +5,9 @@ import           Criterion.Main
 
 
 comb2 :: Int -> [(Int, Int)]
-comb2 n = matchAllDFS [1 .. n]
-                      (List Something)
-                      [[mc| _ ++ $x : _ ++ $y : _ -> (x, y) |]]
+comb2 n = matchAll dfs [1 .. n]
+                       (List Something)
+                       [[mc| _ ++ $x : _ ++ $y : _ -> (x, y) |]]
 
 comb2Native :: Int -> [(Int, Int)]
 comb2Native n = [ (y, z) | y : ts <- tails xs, z <- ts ] where xs = [1 .. n]
