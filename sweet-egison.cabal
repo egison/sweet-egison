@@ -2,7 +2,7 @@ cabal-version:      2.0
 name:               sweet-egison
 version:            0.1.0.1
 synopsis:
-  Shallow embedding implementation of non-linear pattern matching with extensible and polymorphic patterns
+  Shallow embedding implementation of non-linear pattern matching
 
 description:
   The [sweet-egison](https://hackage.haskell.org/package/sweet-egison) is a shallow embedding implementation of non-linear pattern matching with extensible and polymorphic patterns.
