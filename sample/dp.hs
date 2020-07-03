@@ -12,40 +12,30 @@ import           Data.List                      ( nub
                                                 )
 
 
--- Integer matcher
 data Literal = Literal
-instance Integral a => Matcher Literal a
-instance Integral a => ValuePattern Literal a
+instance Eq a => Matcher Literal a
+instance Eq a => ValuePattern Literal a
 
 deleteLiteral l cnf =
-  map (\c -> matchAll c (Multiset Literal) [[mc| (!#l & $m) : _ -> m |]]) cnf
+  map (\c -> matchAll dfs c (Multiset Literal) [[mc| (!#l & $m) : _ -> m |]]) cnf
 
 deleteClausesWith l cnf =
-  matchAll cnf (Multiset (Multiset Literal)) [[mc| (!(#l : _) & $c) : _ -> c |]]
+  matchAll dfs cnf (Multiset (Multiset Literal)) [[mc| (!(#l : _) & $c) : _ -> c |]]
 
 assignTrue l cnf = deleteLiteral (negate l) (deleteClausesWith l cnf)
 
-tautology c = match
+tautology c = match dfs
   c
   (Multiset Literal)
   [[mc| $l : #(negate l) : _ -> True |], [mc| _ -> False |]]
 
 resolveOn v cnf = filter
   (not . tautology)
-  (matchAll
-    cnf
-    (Multiset (Multiset Literal))
-    [ [mc| (#v : $xs) :
-                   (#(negate v) : $ys) :
-                    _ ->
-                  nub (xs ++ ys) |]
-    ]
-  )
+  (matchAll dfs cnf (Multiset (Multiset Literal))
+    [[mc| (#v : $xs) : (#(negate v) : $ys) : _ -> nub (xs ++ ys) |]])
 
 dp :: [Integer] -> [[Integer]] -> Bool
-dp vars cnf = match
-  (vars, cnf)
-  (Pair (Multiset Literal) (Multiset (Multiset Literal)))
+dp vars cnf = match dfs (vars, cnf) (Pair (Multiset Literal) (Multiset (Multiset Literal)))
     -- satisfiable
   [ [mc| (_, []) -> True |]
     -- unsatisfiable

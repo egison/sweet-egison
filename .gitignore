@@ -10,3 +10,5 @@ cabal.project.local
 cabal.sandbox.config
 .stack-work/
 .ghc.environment.*
+sample/cdcl
+sample/dp
