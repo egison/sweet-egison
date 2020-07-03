@@ -5,7 +5,7 @@ import           Criterion.Main
 
 perm2 :: Int -> [(Int, Int)]
 perm2 n =
-  matchAllDFS [1 .. n] (Multiset Something) [[mc| $x : $y : _ -> (x, y) |]]
+  matchAll dfs [1 .. n] (Multiset Something) [[mc| $x : $y : _ -> (x, y) |]]
 
 perm2Native :: Int -> [(Int, Int)]
 perm2Native n = go [1 .. n] [] []

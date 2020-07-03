@@ -10,106 +10,46 @@
 
 module Control.Egison.Match
   ( matchAll
+  , matchAllSingle
   , match
-  , matchAllDFS
-  , matchDFS
-  , mc
-  -- * Flexible variants of 'match' and 'matchAll'
-  , match'
-  , matchAll'
-  , mmatchAll'
   )
 where
 
 import           Language.Haskell.TH.Quote      ( QuasiQuoter )
 import           Control.Egison.Matcher         ( Matcher )
 import           Control.Monad.Search           ( MonadSearch(..)
-                                                , BFS
-                                                , DFS
+                                                , bfs
+                                                , dfs
                                                 )
-import           Data.Query                     ( Query
-                                                , SearchStrategy
-                                                , query
-                                                , query'
-                                                )
-import           Data.Query.QQ                  ( q )
+import           Control.Egison.QQ                  ( mc )
 
 
-{-# INLINABLE match #-}
--- | 'match' returns the first matching result of 'matchAll'.
-match
-  :: Matcher matcher target
-  => target
-  -> matcher
-  -> [Query BFS matcher target out]
-  -> out
-match tgt m = head . matchAll tgt m
-
-{-# INLINABLE matchAll #-}
--- | Perform pattern-matching and return matching results as a list.
+{-# INLINE matchAll #-}
 matchAll
-  :: forall matcher target out
-   . Matcher matcher target
-  => target
-  -> matcher
-  -> [Query BFS matcher target out]
-  -> [out]
-matchAll tgt _ qs = collect $ query @matcher (mconcat qs) tgt
+  :: (Matcher m t, MonadSearch s)
+  => ((m, t) -> s (m, t))
+  -> t
+  -> m
+  -> [(m, t) -> s r]
+  -> [r]
+matchAll strategy target matcher bs = concatMap (\b -> toList (strategy (matcher, target) >>= b)) bs
 
-{-# INLINABLE matchDFS #-}
--- | Equivalent to 'match' except that this uses 'DFS' for searching.
-matchDFS
-  :: Matcher matcher target
-  => target
-  -> matcher
-  -> [Query DFS matcher target out]
-  -> out
-matchDFS tgt m = head . matchAllDFS tgt m
+{-# INLINE matchAllSingle #-}
+matchAllSingle
+  :: (Matcher m t, MonadSearch s)
+  => ((m, t) -> s (m, t))
+  -> t
+  -> m
+  -> ((m, t) -> s r)
+  -> [r]
+matchAllSingle strategy target matcher b = toList (strategy (matcher, target) >>= b)
 
-{-# INLINABLE matchAllDFS #-}
--- | Equivalent to 'matchAll' except that this uses 'DFS' for searching.
-matchAllDFS
-  :: forall matcher target out
-   . Matcher matcher target
-  => target
-  -> matcher
-  -> [Query DFS matcher target out]
-  -> [out]
-matchAllDFS tgt _ qs = collect $ query @matcher (mconcat qs) tgt
-
--- | 'QuasiQuoter' for match clauses, an alias to 'q'.
-mc :: QuasiQuoter
-mc = q
-
-
-{-# INLINABLE match' #-}
--- | Flexible variant of 'match'. We can specify the search strategy and the matcher using type applications.
-match'
-  :: forall strategy matcher target out
-   . (Matcher matcher target, SearchStrategy strategy)
-  => target
-  -> forall m . m ~ matcher => Query strategy matcher target out -> out
-match' tgt = head . matchAll' tgt
-
-{-# INLINABLE matchAll' #-}
--- | Flexible variant of 'matchAll'. We can specify the search strategy and the matcher using type applications.
---
--- e.g. @'matchAll'' \@'DFS' tgt \@('Control.Egison.Matcher.List.List' 'Control.Egison.Matcher.EqM') [q| _ ++ $x : #x : _ -> x |]@ finds all equal pairs in @tgt@.
-matchAll'
-  :: forall strategy matcher target out
-   . (Matcher matcher target, SearchStrategy strategy)
-  => target
-  -> forall m . m ~ matcher => Query strategy matcher target out -> [out]
-matchAll' tgt qu = collect $ query @matcher qu tgt
-
-{-# INLINABLE mmatchAll' #-}
--- | Equivalent to 'matchAll'' except that this returns results as 'MonadSearch' value.
-mmatchAll'
-  :: forall strategy matcher target out
-   . (Matcher matcher target, MonadSearch strategy)
-  => target
-  -> forall m
-   . m ~ matcher
-  => Query strategy matcher target out
-  -> strategy out
-mmatchAll' tgt qu = query' @matcher @strategy qu tgt
+{-# INLINE match #-}
+match
+  :: (Matcher m t, MonadSearch s)
+  => ((m, t) -> s (m, t))
+  -> t
+  -> m
+  -> [(m, t) -> s r]
+  -> r
+match strategy target matcher bs = head (matchAll strategy target matcher bs)

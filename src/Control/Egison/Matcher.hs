@@ -7,35 +7,37 @@
 -- This module defines a class for matchers and some basic matchers.
 
 module Control.Egison.Matcher
-  ( Matcher
+  ( Pattern
+  , Matcher
   , Something(..)
-  , EqM(..)
-  , IntegralM(..)
+  , ValuePattern(..)
+  , Eql(..)
   )
 where
 
-import           Data.Query.Pattern.Value       ( ValuePattern(..) )
+import           Control.Monad                  ( MonadPlus(..) )
 
+-- | Type synonym for patterns.
+type Pattern ps im it ot = ps -> im -> it -> [ot]
 
 -- | Class for matchers. @'Matcher' m tgt@ denotes that @m@ is a matcher for @tgt@.
 class Matcher m tgt
-
 
 -- | Matcher that handles pattern variables and wildcards for arbitrary types.
 data Something = Something
 
 instance Matcher Something a
 
+class Eq t => ValuePattern m t where
+  value :: t -> Pattern () m t ()
+  default value :: Eq t => t -> Pattern () m t ()
+  value e () _ v = if e == v then pure () else mzero
+  valueM :: m -> t -> ()
+  default valueM :: m -> t -> ()
+  valueM _ _ = ()
 
 -- | Matcher that can handle value patterns of 'Eq' types.
-data EqM = EqM
+data Eql = Eql
 
-instance Eq a => Matcher EqM a
-instance Eq a => ValuePattern EqM a
-
-
--- | Matcher for 'Integral' types.
-data IntegralM = IntegralM
-
-instance Integral a => Matcher IntegralM a
-instance Integral a => ValuePattern IntegralM a
+instance Eq a => Matcher Eql a
+instance Eq a => ValuePattern Eql a

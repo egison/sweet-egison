@@ -16,13 +16,13 @@ import           Debug.Trace                    ( trace )
 
 
 data Literal = Literal
-instance Integral a => Matcher Literal a
-instance Integral a => ValuePattern Literal a
+instance Eq a => Matcher Literal a
+instance Eq a => ValuePattern Literal a
 
--- Stage matcher = Integer matcher
+-- Stage matcher = Eql matcher
 data Stage = Stage
-instance Integral a => Matcher Stage a
-instance Integral a => ValuePattern Stage a
+instance Eq a => Matcher Stage a
+instance Eq a => ValuePattern Stage a
 
 -- Matchers for assignments
 type TaggedLiteral = (Integer, Integer) -- a tuple of a variable and a stage
@@ -34,23 +34,24 @@ data Assign = Deduced TaggedLiteral [TaggedLiteral]
 data Assignment = Assignment
 instance Matcher Assignment Assign
 
-deduced
-  :: Pattern
-       Assignment
-       Assign
-       '[Pair Literal Stage, Multiset (Pair Literal Stage)]
-       '[(Integer, Integer), [(Integer, Integer)]]
-deduced _ (Deduced l ls) = pure (l, ls)
-deduced _ _              = mzero
+deduced :: Pattern (PP, PP) Assignment Assign ((Integer, Integer), [(Integer, Integer)])
+deduced _ _ (Deduced l ls) = pure (l, ls)
+deduced _ _ _              = mzero
 
-guessed :: Pattern Assignment Assign '[Pair Literal Stage] '[(Integer, Integer)]
-guessed _ (Guessed l) = pure l
-guessed _ _           = mzero
+deducedM Assignment _ = (Pair Literal Stage, Multiset (Pair Literal Stage))
 
-whichever
-  :: Pattern Assignment Assign '[Pair Literal Stage] '[(Integer, Integer)]
-whichever _ (Deduced l _) = pure l
-whichever _ (Guessed l  ) = pure l
+guessed :: Pattern PP Assignment Assign (Integer, Integer)
+guessed _ _ (Guessed l) = pure l
+guessed _ _ _           = mzero
+
+guessedM Assignment _ = (Pair Literal Stage)
+
+
+whichever :: Pattern PP Assignment Assign (Integer, Integer)
+whichever _ _ (Deduced l _) = pure l
+whichever _ _ (Guessed l  ) = pure l
+
+whicheverM Assignment _ = (Pair Literal Stage)
 
 --
 -- VSIDS
@@ -65,9 +66,9 @@ initVars :: [Integer] -> [(Integer, Integer)]
 initVars vs = map ((, 0) . negate) vs ++ map (, 0) vs
 
 addVars :: [Integer] -> [(Integer, Integer)] -> [(Integer, Integer)]
-addVars vs vars = matchDFS
+addVars vs vars = match dfs
   (vs, vars)
-  (Pair (List Literal) (List (Pair Literal IntegralM)))
+  (Pair (List Literal) (List (Pair Literal Eql)))
   [ [mc| ([], _) -> sortBy (\(_, c1) (_, c2) -> opposite (compare c1 c2)) vars |]
   , [mc| ($v : $vs2, $hs ++ (#v, $c) : $ts) ->
           addVars vs2 (hs ++ (v, c + 1) : ts) |]
@@ -78,16 +79,16 @@ addVars vs vars = matchDFS
   opposite EQ = EQ
 
 deleteVar :: Integer -> [(Integer, Integer)] -> [(Integer, Integer)]
-deleteVar v vars = matchDFS
+deleteVar v vars = match dfs
   vars
-  (Multiset (Pair Literal IntegralM))
+  (Multiset (Pair Literal Eql))
   [[mc| (#v, _) : (#(negate v), _) : $vars2 -> vars2 |]]
 
 --
 -- Utility functions for literals and cnfs
 --
 getStage :: Integer -> [Assign] -> Integer
-getStage l trail = matchDFS
+getStage l trail = match dfs
   trail
   (List Assignment)
   [[mc| _ ++ whichever (#(negate l), $s) : _ -> s |]]
@@ -95,13 +96,13 @@ getStage l trail = matchDFS
 deleteLiteral :: Integer -> [([Integer], [Integer])] -> [([Integer], [Integer])]
 deleteLiteral l cnf = map
   (\(c1, c2) ->
-    (matchAllDFS c1 (Multiset Literal) [[mc| (!#l & $m) : _ -> m |]], c2)
+    (matchAll dfs c1 (Multiset Literal) [[mc| (!#l & $m) : _ -> m |]], c2)
   )
   cnf
 
 deleteClausesWith
   :: Integer -> [([Integer], [Integer])] -> [([Integer], [Integer])]
-deleteClausesWith l cnf = matchAllDFS
+deleteClausesWith l cnf = matchAll dfs
   cnf
   (Multiset (Pair (Multiset Literal) (Multiset Literal)))
   [[mc| ((!(#l : _), _) & $c) : _ -> c |]]
@@ -125,7 +126,7 @@ unitPropagate'
   -> [Assign]
   -> [Assign]
   -> ([([Integer], [Integer])], [Assign])
-unitPropagate' stage cnf trail otrail = matchDFS
+unitPropagate' stage cnf trail otrail = match dfs
   trail
   (List Assignment)
   [ [mc| whichever ($l, _) : $trail2 -> unitPropagate' stage (assignTrue l cnf) trail2 otrail |]
@@ -137,7 +138,7 @@ unitPropagate''
   -> [([Integer], [Integer])]
   -> [Assign]
   -> ([([Integer], [Integer])], [Assign])
-unitPropagate'' stage cnf trail = matchDFS
+unitPropagate'' stage cnf trail = match dfs
   cnf
   (Multiset (Pair (Multiset Literal) (Multiset Literal)))
   [ [mc| ([], _) : _ -> (cnf, trail) |]
@@ -152,9 +153,9 @@ unitPropagate'' stage cnf trail = matchDFS
 --
 
 learn :: Integer -> [(Integer, Integer)] -> [Assign] -> (Integer, [Integer])
-learn stage cl trail = matchDFS
+learn stage cl trail = match dfs
   (trail, cl)
-  (Pair (List Assignment) (Multiset (Pair Literal IntegralM))) -- must be matchDFS
+  (Pair (List Assignment) (Multiset (Pair Literal Eql))) -- must be match dfs
   [ [mc| (_, !((_, #stage) : (_, #stage) : _)) ->
           (minimum (map (\(_, c) -> c) cl), map (\(l, _) -> l) cl) |]
   , [mc| (_ ++ deduced ($l, #stage) $ds : $trail2,
@@ -167,7 +168,7 @@ learn stage cl trail = matchDFS
 --
 
 backjump :: Integer -> [Assign] -> [Assign]
-backjump stage trail = matchDFS
+backjump stage trail = match dfs
   trail
   (List Assignment)
   [ [mc| _ ++ ((guessed (_, #stage) : _) & $trail2) -> trail2 |]
@@ -178,9 +179,9 @@ backjump stage trail = matchDFS
 -- Guess
 --
 
-guess vars trail = matchDFS
+guess vars trail = match dfs
   (vars, trail)
-  (Pair (List (Pair Literal IntegralM)) (List Assignment)) -- must be matchDFS
+  (Pair (List (Pair Literal Eql)) (List Assignment)) -- must be match dfs
   [ [mc| (_ ++ ($l, _) : _,
                (!(_ ++ whichever ((#l | #(negate l)), _) : _))) ->
           negate l |]
@@ -200,7 +201,7 @@ cdcl'
   -> [([Integer], [Integer])]
   -> [Assign]
   -> Bool
-cdcl' count stage vars cnf trail = matchDFS
+cdcl' count stage vars cnf trail = match dfs
   (cnf2, trail2)
   (Pair (Multiset (Pair (Multiset Literal) (Multiset Literal)))
         (List Assignment)
@@ -220,14 +221,14 @@ cdcl' count stage vars cnf trail = matchDFS
 
 main :: IO ()
 main = do
-  print $ cdcl [] []
-  print $ cdcl [] [[]]
-  print $ cdcl [1] [[1]]
-  print $ cdcl [1, 2] [[1], [1, 2]]
-  print "Problem 20"
-  print $ cdcl [1 .. 20] problem20 -- 0.293 sec
+--  print $ cdcl [] []
+--  print $ cdcl [] [[]]
+--  print $ cdcl [1] [[1]]
+--  print $ cdcl [1, 2] [[1], [1, 2]]
+--  print "Problem 20"
+--  print $ cdcl [1 .. 20] problem20 -- 0.030
   print "Problem 50"
-  print $ cdcl [1 .. 50] problem50 -- 2.570 sec
+  print $ cdcl [1 .. 50] problem50 -- 0.126s
 
 problem20 :: [[Integer]]
 problem20 =

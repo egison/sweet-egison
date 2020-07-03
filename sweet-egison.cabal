@@ -1,8 +1,8 @@
 cabal-version:      2.0
 name:               sweet-egison
-version:            0.1.0.0
+version:            0.1.0.1
 synopsis:
-  Shallow embedding implementation of non-linear pattern matching with extensible and polymorphic patterns
+   Shallow embedding implementation of non-linear pattern matching with extensible and polymorphic patterns
 
 description:
   The [sweet-egison](https://hackage.haskell.org/package/sweet-egison) is a shallow embedding implementation of non-linear pattern matching with extensible and polymorphic patterns.
@@ -35,20 +35,10 @@ library
     Control.Egison
     Control.Egison.Match
     Control.Egison.Matcher
-    Control.Egison.Matcher.List
-    Control.Egison.Matcher.Multiset
     Control.Egison.Matcher.Pair
-    Control.Egison.Matcher.Set
-    Control.Egison.Matcher.UnorderedPair
-    Control.Monad.Search
-    Data.Query
-    Data.Query.Pattern
-    Data.Query.Pattern.Collection
-    Data.Query.Pattern.Tuple
-    Data.Query.Pattern.Value
-    Data.Query.QQ
+    Control.Egison.Matcher.Collection
+    Control.Egison.QQ
 
-  other-modules:      Data.Query.Pattern.InternalTH
   build-depends:
       base                        >=4.8   && <5
     , egison-pattern-src          ^>=0.2.1
@@ -58,9 +48,10 @@ library
     , logict                      ^>=0.7.0
     , template-haskell
     , transformers
+    , backtracking
 
   ghc-options:
-    -Wall -Wcompat -Widentities -Wincomplete-record-updates
+    -O3 -Wall -Wcompat -Widentities -Wincomplete-record-updates
     -Wincomplete-uni-patterns
 
   default-language:   Haskell2010
@@ -82,6 +73,9 @@ library
     TupleSections
     TypeFamilies
     TypeOperators
+    TemplateHaskell
+    QuasiQuotes
+    AllowAmbiguousTypes
 
 test-suite test
   type:               exitcode-stdio-1.0

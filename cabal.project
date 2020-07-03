@@ -1,1 +1,7 @@
 packages: .
+
+source-repository-package
+  type:     git
+  location: https://github.com/egison/backtracking
+  tag: 68b22ae72e0e13da10a0e9578226b479b0e2a5f0
+
