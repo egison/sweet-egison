@@ -126,13 +126,22 @@ compilePattern pat body = do
   let_ p e1 = LetE [ValD p (NormalB e1) []]
   sbind_ x f = ParensE (UInfixE (ParensE x) (VarE sbindOp) (ParensE f))
   compose_ f g = ParensE (UInfixE (ParensE f) (VarE '(.)) (ParensE g))
-  plusName    = 'Control.Monad.mplus
-  sbindOp     = '(>>=)
-  lnotName    = 'Control.Monad.Search.lnot
+  plusName = 'Control.Monad.mplus
+  sbindOp  = '(>>=)
+  lnotName = 'Control.Monad.Search.lnot
   go :: Pat.Expr Name Name Exp -> Name -> Name -> Exp -> Q Exp
-  go Pat.Wildcard _ _ body = pure body
+  go Pat.Wildcard     _ _     body = pure body
   go (Pat.Variable x) _ tName body = pure $ let_ (VarP x) (VarE tName) body
-  go (Pat.Value e) mName tName body = pure $ AppE (VarE 'fromList) (AppE (AppE (AppE (AppE (VarE (mkName "value")) e) (TupE [])) (VarE mName)) (VarE tName)) `sbind_` LamE [TupP []] body
+  go (Pat.Value e) mName tName body =
+    pure
+      $        AppE
+                 (VarE 'fromList)
+                 (AppE
+                   (AppE (AppE (AppE (VarE (mkName "value")) e) (TupE [])) (VarE mName)
+                   )
+                   (VarE tName)
+                 )
+      `sbind_` LamE [TupP []] body
   go (Pat.And p1 p2) mName tName body = do
     go p2 mName tName body >>= go p1 mName tName
   go (Pat.Or p1 p2) mName tName body = do
@@ -142,15 +151,26 @@ compilePattern pat body = do
   go (Pat.Not p) mName tName body = do
     r <- go p mName tName (AppE (VarE 'pure) (TupE []))
     pure $ AppE (VarE lnotName) r `sbind_` LamE [TupP []] body
-  go (Pat.Infix n p1 p2) mName tName body = go (Pattern n [p1, p2]) mName tName body
-  go (Pat.Collection ps) mName tName body = go (desugarCollection ps) mName tName body
+  go (Pat.Infix n p1 p2) mName tName body =
+    go (Pattern n [p1, p2]) mName tName body
+  go (Pat.Collection ps) mName tName body =
+    go (desugarCollection ps) mName tName body
   go (Pat.Tuple ps) mName tName body = go (desugarTuple ps) mName tName body
   go (Pat.Pattern cName ps) mName tName body = do
     mNames <- mapM (\_ -> newName "m") ps
     tNames <- mapM (\_ -> newName "t") ps
     let pps = map toPP ps
     body' <- foldrM go' body (zip3 ps mNames tNames)
-    pure $ let_ (TupP (map VarP mNames)) (AppE (AppE (VarE (mkName (show cName ++ "M"))) (VarE mName)) (VarE tName)) $ AppE (VarE 'fromList) (AppE (AppE (AppE (VarE cName) (TupE pps)) (VarE mName)) (VarE tName)) `sbind_` LamE [TupP (map VarP tNames)] body'
+    pure
+      $        let_
+                 (TupP (map VarP mNames))
+                 (AppE (AppE (VarE (mkName (show cName ++ "M"))) (VarE mName))
+                       (VarE tName)
+                 )
+      $        AppE
+                 (VarE 'fromList)
+                 (AppE (AppE (AppE (VarE cName) (TupE pps)) (VarE mName)) (VarE tName))
+      `sbind_` LamE [TupP (map VarP tNames)] body'
    where
     go' :: (Pat.Expr Name Name Exp, Name, Name) -> Exp -> Q Exp
     go' (p, m, t) b = go p m t b
@@ -167,4 +187,4 @@ data PP = WC | GP
 
 toPP :: (Pat.Expr Name Name Exp) -> Exp
 toPP Pat.Wildcard = ConE 'WC
-toPP _ = ConE 'GP
+toPP _            = ConE 'GP

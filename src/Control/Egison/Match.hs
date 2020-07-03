@@ -31,7 +31,8 @@ matchAll
   -> m
   -> [(m, t) -> s r]
   -> [r]
-matchAll strategy target matcher bs = concatMap (\b -> toList (strategy (matcher, target) >>= b)) bs
+matchAll strategy target matcher bs =
+  concatMap (\b -> toList (strategy (matcher, target) >>= b)) bs
 
 {-# INLINE matchAllSingle #-}
 matchAllSingle
@@ -41,7 +42,8 @@ matchAllSingle
   -> m
   -> ((m, t) -> s r)
   -> [r]
-matchAllSingle strategy target matcher b = toList (strategy (matcher, target) >>= b)
+matchAllSingle strategy target matcher b =
+  toList (strategy (matcher, target) >>= b)
 
 {-# INLINE match #-}
 match

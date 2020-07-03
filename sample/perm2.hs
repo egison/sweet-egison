@@ -26,7 +26,7 @@ perm2Native n = go [1 .. n] [] []
 main = do
   [fn, n] <- getArgs
   let fn' = read fn :: Int
-  let n' = read n :: Int
+  let n'  = read n :: Int
   case fn' of
     -- n'=5000, 0.811s
     1 -> print $ length $ perm2 n'
