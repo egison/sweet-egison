@@ -2,7 +2,7 @@ cabal-version:      2.0
 name:               sweet-egison
 version:            0.1.0.1
 synopsis:
-   Shallow embedding implementation of non-linear pattern matching with extensible and polymorphic patterns
+  Shallow embedding implementation of non-linear pattern matching with extensible and polymorphic patterns
 
 description:
   The [sweet-egison](https://hackage.haskell.org/package/sweet-egison) is a shallow embedding implementation of non-linear pattern matching with extensible and polymorphic patterns.
@@ -35,12 +35,13 @@ library
     Control.Egison
     Control.Egison.Match
     Control.Egison.Matcher
-    Control.Egison.Matcher.Pair
     Control.Egison.Matcher.Collection
+    Control.Egison.Matcher.Pair
     Control.Egison.QQ
 
   build-depends:
-      base                        >=4.8   && <5
+      backtracking
+    , base                        >=4.8   && <5
     , egison-pattern-src          ^>=0.2.1
     , egison-pattern-src-th-mode  ^>=0.2.1
     , haskell-src-exts
@@ -48,7 +49,6 @@ library
     , logict                      ^>=0.7.0
     , template-haskell
     , transformers
-    , backtracking
 
   ghc-options:
     -O3 -Wall -Wcompat -Widentities -Wincomplete-record-updates
@@ -56,6 +56,7 @@ library
 
   default-language:   Haskell2010
   default-extensions:
+    AllowAmbiguousTypes
     DataKinds
     DefaultSignatures
     DerivingStrategies
@@ -67,15 +68,14 @@ library
     MultiParamTypeClasses
     NamedFieldPuns
     PolyKinds
+    QuasiQuotes
     RankNTypes
     ScopedTypeVariables
     StandaloneDeriving
+    TemplateHaskell
     TupleSections
     TypeFamilies
     TypeOperators
-    TemplateHaskell
-    QuasiQuotes
-    AllowAmbiguousTypes
 
 test-suite test
   type:               exitcode-stdio-1.0

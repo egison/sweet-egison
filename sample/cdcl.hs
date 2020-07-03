@@ -34,7 +34,12 @@ data Assign = Deduced TaggedLiteral [TaggedLiteral]
 data Assignment = Assignment
 instance Matcher Assignment Assign
 
-deduced :: Pattern (PP, PP) Assignment Assign ((Integer, Integer), [(Integer, Integer)])
+deduced
+  :: Pattern
+       (PP, PP)
+       Assignment
+       Assign
+       ((Integer, Integer), [(Integer, Integer)])
 deduced _ _ (Deduced l ls) = pure (l, ls)
 deduced _ _ _              = mzero
 
@@ -66,7 +71,8 @@ initVars :: [Integer] -> [(Integer, Integer)]
 initVars vs = map ((, 0) . negate) vs ++ map (, 0) vs
 
 addVars :: [Integer] -> [(Integer, Integer)] -> [(Integer, Integer)]
-addVars vs vars = match dfs
+addVars vs vars = match
+  dfs
   (vs, vars)
   (Pair (List Literal) (List (Pair Literal Eql)))
   [ [mc| ([], _) -> sortBy (\(_, c1) (_, c2) -> opposite (compare c1 c2)) vars |]
@@ -79,7 +85,8 @@ addVars vs vars = match dfs
   opposite EQ = EQ
 
 deleteVar :: Integer -> [(Integer, Integer)] -> [(Integer, Integer)]
-deleteVar v vars = match dfs
+deleteVar v vars = match
+  dfs
   vars
   (Multiset (Pair Literal Eql))
   [[mc| (#v, _) : (#(negate v), _) : $vars2 -> vars2 |]]
@@ -89,9 +96,9 @@ deleteVar v vars = match dfs
 --
 getStage :: Integer -> [Assign] -> Integer
 getStage l trail = match dfs
-  trail
-  (List Assignment)
-  [[mc| _ ++ whichever (#(negate l), $s) : _ -> s |]]
+                         trail
+                         (List Assignment)
+                         [[mc| _ ++ whichever (#(negate l), $s) : _ -> s |]]
 
 deleteLiteral :: Integer -> [([Integer], [Integer])] -> [([Integer], [Integer])]
 deleteLiteral l cnf = map
@@ -102,7 +109,8 @@ deleteLiteral l cnf = map
 
 deleteClausesWith
   :: Integer -> [([Integer], [Integer])] -> [([Integer], [Integer])]
-deleteClausesWith l cnf = matchAll dfs
+deleteClausesWith l cnf = matchAll
+  dfs
   cnf
   (Multiset (Pair (Multiset Literal) (Multiset Literal)))
   [[mc| ((!(#l : _), _) & $c) : _ -> c |]]
@@ -126,7 +134,8 @@ unitPropagate'
   -> [Assign]
   -> [Assign]
   -> ([([Integer], [Integer])], [Assign])
-unitPropagate' stage cnf trail otrail = match dfs
+unitPropagate' stage cnf trail otrail = match
+  dfs
   trail
   (List Assignment)
   [ [mc| whichever ($l, _) : $trail2 -> unitPropagate' stage (assignTrue l cnf) trail2 otrail |]
@@ -138,7 +147,8 @@ unitPropagate''
   -> [([Integer], [Integer])]
   -> [Assign]
   -> ([([Integer], [Integer])], [Assign])
-unitPropagate'' stage cnf trail = match dfs
+unitPropagate'' stage cnf trail = match
+  dfs
   cnf
   (Multiset (Pair (Multiset Literal) (Multiset Literal)))
   [ [mc| ([], _) : _ -> (cnf, trail) |]
@@ -153,7 +163,8 @@ unitPropagate'' stage cnf trail = match dfs
 --
 
 learn :: Integer -> [(Integer, Integer)] -> [Assign] -> (Integer, [Integer])
-learn stage cl trail = match dfs
+learn stage cl trail = match
+  dfs
   (trail, cl)
   (Pair (List Assignment) (Multiset (Pair Literal Eql))) -- must be match dfs
   [ [mc| (_, !((_, #stage) : (_, #stage) : _)) ->
@@ -168,7 +179,8 @@ learn stage cl trail = match dfs
 --
 
 backjump :: Integer -> [Assign] -> [Assign]
-backjump stage trail = match dfs
+backjump stage trail = match
+  dfs
   trail
   (List Assignment)
   [ [mc| _ ++ ((guessed (_, #stage) : _) & $trail2) -> trail2 |]
@@ -179,7 +191,8 @@ backjump stage trail = match dfs
 -- Guess
 --
 
-guess vars trail = match dfs
+guess vars trail = match
+  dfs
   (vars, trail)
   (Pair (List (Pair Literal Eql)) (List Assignment)) -- must be match dfs
   [ [mc| (_ ++ ($l, _) : _,
@@ -201,7 +214,8 @@ cdcl'
   -> [([Integer], [Integer])]
   -> [Assign]
   -> Bool
-cdcl' count stage vars cnf trail = match dfs
+cdcl' count stage vars cnf trail = match
+  dfs
   (cnf2, trail2)
   (Pair (Multiset (Pair (Multiset Literal) (Multiset Literal)))
         (List Assignment)
