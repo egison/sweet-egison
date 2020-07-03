@@ -49,14 +49,14 @@ guessed :: Pattern PP Assignment Assign (Integer, Integer)
 guessed _ _ (Guessed l) = pure l
 guessed _ _ _           = mzero
 
-guessedM Assignment _ = (Pair Literal Stage)
+guessedM Assignment _ = Pair Literal Stage
 
 
 whichever :: Pattern PP Assignment Assign (Integer, Integer)
 whichever _ _ (Deduced l _) = pure l
 whichever _ _ (Guessed l  ) = pure l
 
-whicheverM Assignment _ = (Pair Literal Stage)
+whicheverM Assignment _ = Pair Literal Stage
 
 --
 -- VSIDS

@@ -6,8 +6,6 @@
 --
 -- This module exposes many combinators to perform pattern matching in [miniEgison](https://hackage.haskell.org/package/mini-egison)-like way.
 
-{-# LANGUAGE TypeApplications #-}
-
 module Control.Egison.Match
   ( matchAll
   , matchAllSingle
@@ -31,8 +29,8 @@ matchAll
   -> m
   -> [(m, t) -> s r]
   -> [r]
-matchAll strategy target matcher bs =
-  concatMap (\b -> toList (strategy (matcher, target) >>= b)) bs
+matchAll strategy target matcher =
+  concatMap (\b -> toList (strategy (matcher, target) >>= b))
 
 {-# INLINE matchAllSingle #-}
 matchAllSingle

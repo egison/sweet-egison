@@ -142,7 +142,7 @@ compilePattern pat body = do
                    (VarE tName)
                  )
       `sbind_` LamE [TupP []] body
-  go (Pat.And p1 p2) mName tName body = do
+  go (Pat.And p1 p2) mName tName body =
     go p2 mName tName body >>= go p1 mName tName
   go (Pat.Or p1 p2) mName tName body = do
     r1 <- go p1 mName tName (AppE (VarE 'pure) (TupE []))
@@ -173,7 +173,7 @@ compilePattern pat body = do
       `sbind_` LamE [TupP (map VarP tNames)] body'
    where
     go' :: (Pat.Expr Name Name Exp, Name, Name) -> Exp -> Q Exp
-    go' (p, m, t) b = go p m t b
+    go' (p, m, t) = go p m t
 
 desugarCollection :: [Pat.Expr Name Name Exp] -> Pat.Expr Name Name Exp
 desugarCollection = foldr go $ Pat.Pattern (mkName "nil") []
@@ -185,6 +185,6 @@ desugarTuple ps = Pat.Pattern (mkName name) ps
 
 data PP = WC | GP
 
-toPP :: (Pat.Expr Name Name Exp) -> Exp
+toPP :: Pat.Expr Name Name Exp -> Exp
 toPP Pat.Wildcard = ConE 'WC
 toPP _            = ConE 'GP

@@ -3,7 +3,7 @@
 {-# LANGUAGE TypeOperators   #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
-import Control.Egison
+import           Control.Egison
 
 data Card = Card Suit Integer
 data Suit = Spade | Heart | Club | Diamond deriving (Eq)
@@ -18,34 +18,46 @@ cardM CardM _ = (Eql, Eql)
 
 
 poker :: [Card] -> String
-poker cs =
-  match dfs cs (Multiset CardM)
-    [[mc| [card $s $n, card #s #(n-1), card #s #(n-2), card #s #(n-3), card #s #(n-4)] ->
-          "Straight flush" |],
-     [mc| [card _ $n, card _ #n, card _ #n, card _ #n, _] ->
-          "Four of a kind" |],
-     [mc| [card _ $m, card _ #m, card _ #m, card _ $n, card _ #n] ->
-          "Full house" |],
-     [mc| [card $s _, card #s _, card #s _, card #s _, card #s _] ->
-          "Flush" |],
-     [mc| [card _ $n, card _ #(n-1), card _ #(n-2), card _ #(n-3), card _ #(n-4)] ->
-          "Straight" |],
-     [mc| [card _ $n, card _ #n, card _ #n, _, _] ->
-          "Three of a kind" |],
-     [mc| [card _ $m, card _ #m, card _ $n, card _ #n, _] ->
-          "Two pair" |],
-     [mc| [card _ $n, card _ #n, _, _, _] ->
-          "One pair" |],
-     [mc| _ -> "Nothing" |]]
+poker cs = match
+  dfs
+  cs
+  (Multiset CardM)
+  [ [mc| [card $s $n, card #s #(n-1), card #s #(n-2), card #s #(n-3), card #s #(n-4)] ->
+          "Straight flush" |]
+  , [mc| [card _ $n, card _ #n, card _ #n, card _ #n, _] ->
+          "Four of a kind" |]
+  , [mc| [card _ $m, card _ #m, card _ #m, card _ $n, card _ #n] ->
+          "Full house" |]
+  , [mc| [card $s _, card #s _, card #s _, card #s _, card #s _] ->
+          "Flush" |]
+  , [mc| [card _ $n, card _ #(n-1), card _ #(n-2), card _ #(n-3), card _ #(n-4)] ->
+          "Straight" |]
+  , [mc| [card _ $n, card _ #n, card _ #n, _, _] ->
+          "Three of a kind" |]
+  , [mc| [card _ $m, card _ #m, card _ $n, card _ #n, _] ->
+          "Two pair" |]
+  , [mc| [card _ $n, card _ #n, _, _, _] ->
+          "One pair" |]
+  , [mc| _ -> "Nothing" |]
+  ]
 
 main :: IO ()
 main = do
-  putStrLn $ poker [Card Spade 5, Card Spade 6, Card Spade 7, Card Spade 8, Card Spade 9]    -- "Straight flush
-  putStrLn $ poker [Card Spade 5, Card Diamond 5, Card Spade 7, Card Club 5, Card Heart 5]   -- "Four of a kind"
-  putStrLn $ poker [Card Spade 5, Card Diamond 5, Card Spade 7, Card Club 5, Card Heart 7]   -- "Full house"
-  putStrLn $ poker [Card Spade 5, Card Spade 6, Card Spade 7, Card Spade 13, Card Spade 9]   -- "Flush"
-  putStrLn $ poker [Card Spade 5, Card Club 6, Card Spade 7, Card Spade 8, Card Spade 9]     -- "Straight"
-  putStrLn $ poker [Card Spade 5, Card Diamond 5, Card Spade 7, Card Club 5, Card Heart 8]   -- "Three of a kind"
-  putStrLn $ poker [Card Spade 5, Card Diamond 10, Card Spade 7, Card Club 5, Card Heart 10] -- "Two pair"
-  putStrLn $ poker [Card Spade 5, Card Diamond 10, Card Spade 7, Card Club 5, Card Heart 8]  -- "One pair"
-  putStrLn $ poker [Card Spade 5, Card Spade 6, Card Spade 7, Card Spade 8, Card Diamond 11] -- "Nothing"
+  putStrLn $ poker
+    [Card Spade 5, Card Spade 6, Card Spade 7, Card Spade 8, Card Spade 9]    -- "Straight flush
+  putStrLn $ poker
+    [Card Spade 5, Card Diamond 5, Card Spade 7, Card Club 5, Card Heart 5]   -- "Four of a kind"
+  putStrLn $ poker
+    [Card Spade 5, Card Diamond 5, Card Spade 7, Card Club 5, Card Heart 7]   -- "Full house"
+  putStrLn $ poker
+    [Card Spade 5, Card Spade 6, Card Spade 7, Card Spade 13, Card Spade 9]   -- "Flush"
+  putStrLn $ poker
+    [Card Spade 5, Card Club 6, Card Spade 7, Card Spade 8, Card Spade 9]     -- "Straight"
+  putStrLn $ poker
+    [Card Spade 5, Card Diamond 5, Card Spade 7, Card Club 5, Card Heart 8]   -- "Three of a kind"
+  putStrLn $ poker
+    [Card Spade 5, Card Diamond 10, Card Spade 7, Card Club 5, Card Heart 10] -- "Two pair"
+  putStrLn $ poker
+    [Card Spade 5, Card Diamond 10, Card Spade 7, Card Club 5, Card Heart 8]  -- "One pair"
+  putStrLn $ poker
+    [Card Spade 5, Card Spade 6, Card Spade 7, Card Spade 8, Card Diamond 11] -- "Nothing"
