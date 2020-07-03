@@ -146,8 +146,8 @@ compilePattern pat body = do
   go (Pat.Collection ps) mName tName body = go (desugarCollection ps) mName tName body
   go (Pat.Tuple ps) mName tName body = go (desugarTuple ps) mName tName body
   go (Pat.Pattern cName ps) mName tName body = do
-    mNames <- mapM (\_ -> newName "m") ps
-    tNames <- mapM (\_ -> newName "t") ps
+    mNames <- mapM (\_ -> newName "tmpM") ps
+    tNames <- mapM (\_ -> newName "tmpT") ps
     let pps = map toPP ps
     body' <- foldrM go' body (zip3 ps mNames tNames)
     pure $ let_ (TupP (map VarP mNames)) (AppE (AppE (VarE (mkName (show cName ++ "M"))) (VarE mName)) (VarE tName)) $ AppE (VarE 'fromList) (AppE (AppE (AppE (VarE cName) (TupE pps)) (VarE mName)) (VarE tName)) `sbind_` LamE [TupP (map VarP tNames)] body'
