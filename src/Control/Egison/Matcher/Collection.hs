@@ -8,6 +8,7 @@ module Control.Egison.Matcher.Collection
   ( CollectionPattern(..)
   , List(..)
   , Multiset(..)
+  , Set(..)
   )
 where
 
@@ -86,5 +87,23 @@ instance Matcher m t => CollectionPattern (Multiset m) [t] where
   cons _ (Multiset m) xs = matchAll dfs xs (List Something) [[mc| $hs ++ $x : $ts -> (x, hs ++ ts) |]]
   {-# INLINE consM #-}
   consM (Multiset m) _ = (m, Multiset m)
+  {-# INLINABLE join #-}
+  join = undefined
+
+newtype Set m = Set m
+
+instance Matcher m t => Matcher (Set m) [t]
+
+instance Matcher m t => CollectionPattern (Set m) [t] where
+  type ElemM (Set m) = m
+  type ElemT [t] = t
+  {-# INLINE nil #-}
+  nil _ _ [] = pure ()
+  nil _ _ _ = mzero
+  {-# INLINE cons #-}
+  cons (_, WC) (Set m) xs = map (\x -> (x, undefined)) xs
+  cons _ (Set m) xs = map (\x -> (x, xs)) xs
+  {-# INLINE consM #-}
+  consM (Set m) _ = (m, Set m)
   {-# INLINABLE join #-}
   join = undefined
