@@ -17,6 +17,7 @@ import           Control.Monad                  ( MonadPlus(..) )
 import           Control.Monad.Search
 import           Control.Egison.Match
 import           Control.Egison.Matcher
+import           Control.Egison.Matcher.Pair
 import           Control.Egison.QQ
 import           Language.Egison.Syntax.Pattern
                                                as Pat
@@ -72,6 +73,9 @@ instance Matcher m t => CollectionPattern (List m) [t] where
     (ys, zs) <- join ps m xs
     pure (x : ys, zs)
 
+instance (Eq a, Matcher m a, ValuePattern m a) => ValuePattern (List m) [a] where
+  value e () (List m) v = if eqAs (List m) (List m) e v then pure () else mzero
+
 newtype Multiset m = Multiset m
 
 instance Matcher m t => Matcher (Multiset m) [t]
@@ -90,6 +94,9 @@ instance Matcher m t => CollectionPattern (Multiset m) [t] where
   {-# INLINABLE join #-}
   join = undefined
 
+instance (Eq a, Matcher m a, ValuePattern m a) => ValuePattern (Multiset m) [a] where
+  value e () (Multiset m) v = if eqAs (List m) (Multiset m) e v then pure () else mzero
+
 newtype Set m = Set m
 
 instance Matcher m t => Matcher (Set m) [t]
@@ -107,3 +114,11 @@ instance Matcher m t => CollectionPattern (Set m) [t] where
   consM (Set m) _ = (m, Set m)
   {-# INLINABLE join #-}
   join = undefined
+
+instance (Eq a, Matcher m a, ValuePattern m a) => ValuePattern (Set m) [a] where
+  value e () (Set m) v = if eqAs (List m) (Set m) e v then pure () else mzero
+
+eqAs m1 m2 xs ys = match dfs (xs, ys) (Pair m1 m2)
+  [[mc| ([], []) -> True |],
+   [mc| ($x : $xs, #x : $ys) -> eqAs m1 m2 xs ys |],
+   [mc| _ -> False |]]

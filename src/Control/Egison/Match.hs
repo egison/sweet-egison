@@ -21,7 +21,6 @@ import           Control.Monad.Search           ( MonadSearch(..)
                                                 , bfs
                                                 , dfs
                                                 )
-import           Control.Egison.QQ                  ( mc )
 
 
 {-# INLINE matchAll #-}
