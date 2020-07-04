@@ -6,7 +6,7 @@
 [![Hackage Deps](https://img.shields.io/hackage-deps/v/sweet-egison.svg)](http://packdeps.haskellers.com/reverse/sweet-egison)
 
 The [Sweet Egison](https://hackage.haskell.org/package/sweet-egison) is a shallow embedding implementation of non-linear pattern matching with extensible and polymorphic patterns [1].
-This library desguars the [Egison](https:///www.egison.org) pattern-match expressions into Haskell programs that use non-deterministic monads.
+This library desguars the [Egison](https:///www.egison.org) pattern-match expressions into Haskell programs that use [non-deterministic monads](https://github.com/egison/backtracking).
 This library provides a base of the pattern-match-oriented (PMO) programming style [2] for Haskell users at a practical level of efficiency.
 
 ## Getting started
