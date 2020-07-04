@@ -28,8 +28,7 @@ main = do
   let fn' = read fn :: Int
   let n'  = read n :: Int
   case fn' of
-    -- n'=5000, 0.811s
+    -- n'=5000, 0.462
     1 -> print $ length $ perm2 n'
-    -- n'=5000, 0.404s
+    -- n'=5000, 0.444
     2 -> print $ length $ perm2Native n'
---    3 -> print $ length $ perm2Backtracking n'
