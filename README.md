@@ -184,6 +184,18 @@ The following benchmark is taken using MacBook Pro (2017, 2.3 GHz Intel Core i5)
 | miniEgison   | 13.029 sec        | 3.854 sec        | 1.025 sec      |
 | Sweet Egison | 0.303 sec         | 0.462 sec        | 0.097 sec      |
 
+There is almost no execution performance differences between programs written using list comprehensions and Sweet Egison.
+
+|                     | comb2 (n = 15000) | comb2 (n = 15000) | perm2 (n = 5000) | perm2 (n = 10000) |
+|---------------------|-------------------|-------------------|------------------|-------------------|
+| List Comprehensions | 0.347 sec         | 1.244 sec         | 0.409 sec        | 2.077 sec         |
+| Sweet Egison        | 0.309 sec         | 1.081 sec         | 0.434 sec        | 1.984 sec         |
+
+Programs used for the above benchmarks are follows:
+* [sample/comb2.hs](https://github.com/egison/sweet-egison/blob/master/sample/comb2.hs)
+* [sample/perm2.hs](https://github.com/egison/sweet-egison/blob/master/sample/perm2.hs)
+* [sample/cdcl.hs](https://github.com/egison/sweet-egison/blob/master/sample/cdcl.hs)
+
 ## Bibliography
 
 - [1] Satoshi Egi and Yuichi Nishiwaki: Functional Programming in Pattern-Match-Oriented Programming Style, The Art, Science, and Engineering of Programming, 2020, Vol. 4, Issue 3, Article 7, DOI: 10.22152/programming-journal.org/2020/4/7
