@@ -176,7 +176,13 @@ concatMap (\b -> toList (dfs (Multiset Eql, [1, 2, 3, 12]) >>= b))
 
 [miniEgison](https://github.com/egison/egison-haskell) is also a Haskell library that implements Egison pattern matching.
 The main difference between [miniEgison](https://github.com/egison/egison-haskell) and Sweet Egison is that Sweet Egison translates pattern matching into Haskell control expressions (shallow embedding), whereas [miniEgison](https://github.com/egison/egison-haskell) translates it into Haskell data expressions (deep embedding).
+As a result, Sweet Egison is faster than miniEgison.
+The following benchmark is taken using MacBook Pro (2017, 2.3 GHz Intel Core i5).
 
+|              | comb2 (n = 15000) | perm2 (n = 5000) | CDCL (50 vars) |
+|--------------|-------------------|------------------|----------------|
+| miniEgison   | 13.029 sec        | 3.854 sec        | 1.025 sec      |
+| Sweet Egison | 0.303 sec         | 0.462 sec        | 0.097 sec      |
 
 ## Bibliography
 
