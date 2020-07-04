@@ -59,6 +59,7 @@ newtype List m = List m
 instance Matcher m t => Matcher (List m) [t]
 
 instance Matcher m t => CollectionPattern (List m) [t] where
+  {-# SPECIALIZE instance Matcher m t => CollectionPattern (List m) [t] #-}
   type ElemM (List m) = m
   type ElemT [t] = t
   {-# INLINE nil #-}
@@ -88,6 +89,7 @@ newtype Multiset m = Multiset m
 instance Matcher m t => Matcher (Multiset m) [t]
 
 instance Matcher m t => CollectionPattern (Multiset m) [t] where
+  {-# SPECIALIZE instance Matcher m t => CollectionPattern (Multiset m) [t] #-}
   type ElemM (Multiset m) = m
   type ElemT [t] = t
   {-# INLINE nil #-}
@@ -114,6 +116,7 @@ newtype Set m = Set m
 instance Matcher m t => Matcher (Set m) [t]
 
 instance Matcher m t => CollectionPattern (Set m) [t] where
+  {-# SPECIALIZE instance Matcher m t => CollectionPattern (Set m) [t] #-}
   type ElemM (Set m) = m
   type ElemT [t] = t
   {-# INLINE nil #-}
