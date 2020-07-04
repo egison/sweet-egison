@@ -53,6 +53,7 @@ We use `Multiset Something` instead of `List Something` here to match the target
 These parameters such as `Multiset Something`, `List (List Something)`, and `Something` are called *matchers* and specify pattern-matching methods.
 Given a matcher `m`, `Multiset m` is a matcher for multisets that matches its elements with `m`.
 `Something` is a matcher that provides simple matching methods for an arbitrary value.
+Pattern constructors such as `:` and `++` are overloaded over matchers for collections to archive the ad-hoc polymorphism of patterns.
 
 ### Controlling matching strategy
 
@@ -139,7 +140,6 @@ For example, the match clause `[mc| $x : #(x + 10) : _ -> (x, x + 10) |]` is tra
                                       >>= (\ () -> pure (x, x + 10)))))))
 ```
 The infix operators `:` and `++` are synonyms of `cons` and `join`, respectively, and desugared in that way during translation.
---Here, pattern constructor names such as `join` and `cons` are overloaded over matchers of collections to archive the ad-hoc polymorphism of patterns.
 
 The `matchAll` function is defined as a function that creates and passes the argument for this non-deterministic monads.
 ```haskell
