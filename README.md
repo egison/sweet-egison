@@ -56,16 +56,16 @@ Given a matcher `m`, `Multiset m` is a matcher for multisets that matches its el
 
 ### Controlling matching strategy
 
-Some pattern matching have infinitely many results and `matchAll` is designed to be able to enumerate all the results.
-For this purpose, `matchAll` traverses a search tree for pattern matching in the breadth-first order.
+Some pattern matching have infinitely many results and `matchAll bfs` is designed to be able to enumerate all the results.
+For this purpose, `matchAll bfs` traverses a search tree for pattern matching in the breadth-first order.
 The following example illustrates this:
 
 ```haskell
-> take 10 $ matchAll dfs [1 ..] (Set Something) [[mc| $x : $y : _ -> (x, y) |]]
+> take 10 $ matchAll bfs [1 ..] (Set Something) [[mc| $x : $y : _ -> (x, y) |]]
 [(1,1),(2,1),(1,2),(3,1),(1,3),(2,2),(1,4),(4,1),(1,5),(2,3)]
 ```
 
-We can use the depth-first search with `matchAllDFS`.
+We can use the depth-first search with `matchAll dfs`.
 
 ```haskell
 > take 10 $ matchAll dfs [1 ..] (Set Something) [[mc| $x : $y : _ -> (x, y) |]]
@@ -73,9 +73,9 @@ We can use the depth-first search with `matchAllDFS`.
 ```
 
 In most cases, the depth-first search is faster than the default breadth-first search strategy.
-It is recommended to always use `matchAllDFS` if it is OK to do so.
+It is recommended to always use `matchAll dfs` if it is OK to do so.
 
-With `matchAllDFS`, we can define an intuitive pattern-matching version of `concat` function on lists.
+With `matchAll dfs`, we can define an intuitive pattern-matching version of `concat` function on lists.
 
 ```haskell
 > concat xs = matchAll dfs xs (List (List Something)) [[mc| _ ++ (_ ++ $x : _) : _ -> x |]]
@@ -101,7 +101,7 @@ We can implement a pattern-matching version of set functions such as `member` an
 Match clauses are monoids and can be concatenated using `<>`.
 
 ```haskell
-> member x xs = matchDFS xs (Multiset Eql) [[mc| #x : _ -> True |], [mc| _ -> False |]]
+> member x xs = match dfs xs (Multiset Eql) [[mc| #x : _ -> True |], [mc| _ -> False |]]
 > member 1 [3,4,1,4]
 True
 > intersect xs ys = matchAll dfs (xs, ys) (Pair (Set Eql) (Set Eql)) [[mc| ($x : _, #x : _) -> x |]]
@@ -115,40 +115,68 @@ Some practical applications of PMO such as a [SAT solver](https://github.com/egi
 Detailed information of Egison, the original PMO language implementation, can be found on [https://www.egison.org/](https://www.egison.org/) or in [1].
 You can learn more about pattern-match-oriented programming style in [2].
 
-## Implementation / Difference from miniEgison
+
+## Implementation
+
+Sweet Egison transform patterns into a program that uses non-deterministic monads.
+Our quasi-quoter `mc` translates match clauses into functions that take a target and return a non-deterministic computation as `MonadPlus`-like monadic expression.
+As `MonadPlus` can express backtracking computation, we can perform efficient backtracking pattern matching.
+For example, the match clause `[mc| $x : #(x + 10) : _ -> (x, x + 10) |]` is transformed as follows:
+```haskell
+    \ (mat_a5sV, tgt_a5sW)
+      -> let (tmpM_a5sX, tmpM_a5sY) = (consM mat_a5sV) tgt_a5sW
+         in
+           ((fromList (((cons (GP, GP)) mat_a5sV) tgt_a5sW))
+              >>=
+                (\ (tmpT_a5sZ, tmpT_a5t0)
+                   -> let x = tmpT_a5sZ in
+                      let (tmpM_a5t1, tmpM_a5t2) = (consM tmpM_a5sY) tmpT_a5t0
+                      in
+                        ((fromList (((cons (GP, WC)) tmpM_a5sY) tmpT_a5t0))
+                           >>=
+                             (\ (tmpT_a5t3, tmpT_a5t4)
+                                -> ((fromList ((((value (x + 10)) ()) tmpM_a5t1) tmpT_a5t3))
+                                      >>= (\ () -> pure (x, x + 10)))))))
+```
+The infix operators `:` and `++` are synonyms of `cons` and `join`, respectively, and desugared in that way during translation.
+--Here, pattern constructor names such as `join` and `cons` are overloaded over matchers of collections to archive the ad-hoc polymorphism of patterns.
+
+The `matchAll` function is defined as a function that creates and passes the argument for this non-deterministic monads.
+```haskell
+matchAll strategy target matcher =
+  concatMap (\b -> toList (strategy (matcher, target) >>= b))
+```
+
+Consequently, the pattern-match expression
+```haskell
+matchAll dfs [1, 2, 3, 12] (Multiset Eql)
+  [[mc| $x : #(x + 10) : _ -> (x, x + 10) |]]
+-- [(2, 12)]
+```
+is transformed into a program that is equivalent to the following:
+```haskell
+concatMap (\b -> toList (dfs (Multiset Eql, [1, 2, 3, 12]) >>= b))
+    [\ (mat_a5sV, tgt_a5sW)
+       -> let (tmpM_a5sX, tmpM_a5sY) = (consM mat_a5sV) tgt_a5sW
+          in
+            ((fromList (((cons (GP, GP)) mat_a5sV) tgt_a5sW))
+               >>=
+                 (\ (tmpT_a5sZ, tmpT_a5t0)
+                    -> let x = tmpT_a5sZ in
+                       let (tmpM_a5t1, tmpM_a5t2) = (consM tmpM_a5sY) tmpT_a5t0
+                       in
+                         ((fromList (((cons (GP, WC)) tmpM_a5sY) tmpT_a5t0))
+                            >>=
+                              (\ (tmpT_a5t3, tmpT_a5t4)
+                                 -> ((fromList ((((value (x + 10)) ()) tmpM_a5t1) tmpT_a5t3))
+                                       >>= (\ () -> pure (x, x + 10)))))))]
+```
+
+### MiniEgison (Deep Embedding) vs. Sweet Egison (Shallow Embedding)
 
 [miniEgison](https://github.com/egison/egison-haskell) is also a Haskell library that implements Egison pattern matching.
-The main difference from [miniEgison](https://github.com/egison/egison-haskell) is that sweet-egison translates pattern matching into Haskell control expressions (shallow embedding), where [miniEgison](https://github.com/egison/egison-haskell) translates it into Haskell data expressions (deep embedding).
+The main difference between [miniEgison](https://github.com/egison/egison-haskell) and Sweet Egison is that Sweet Egison translates pattern matching into Haskell control expressions (shallow embedding), whereas [miniEgison](https://github.com/egison/egison-haskell) translates it into Haskell data expressions (deep embedding).
 
-Our quasi-quoter `mc` translates match clauses into functions that take a target and return a non-deterministic computation as `MonadPlus`-like monadic expression.
-As `MonadPlus` can express backtracking computation, we can perform efficient backtracking pattern matching that is essential to PMO programming on it.
-
-For example, `[mc| $xs ++ $x : $ys -> (xs, x, ys) |]` is translated as follows:
-
-```haskell
-\tgt ->
-  join tgt >-> \(xs, d0) ->
-    cons d0 >-> \(x, ys) ->
-      pure (xs, x, ys)
-```
-
-```haskell
-\(mat, tgt) ->
-  join mat tgt >>= \((m0, m1), (xs, d0)) ->
-    cons m1 d0 >>= \((m2, m3), (x, ys)) ->
-      pure (xs, x, ys)
-```
-
-```haskell
--- $hs ++ $ts -> (hs, ts)
-\tgt ->
-  join tgt >>= \(hs, ts) ->
-     pure (hs, ts)
-```
-
-
-`:` and `++` are synonyms of `cons` and `join` respectively, and desugared in that way during translation.
-Here, pattern constructor names such as `join` and `cons` are overloaded over matchers of collections to archive the ad-hoc polymorphism of patterns.
 
 ## Bibliography
 
