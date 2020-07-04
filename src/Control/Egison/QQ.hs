@@ -151,11 +151,14 @@ compilePattern pat body = do
   go (Pat.Not p) mName tName body = do
     r <- go p mName tName (AppE (VarE 'pure) (TupE []))
     pure $ AppE (VarE lnotName) r `sbind_` LamE [TupP []] body
-  go (Pat.Infix n p1 p2) mName tName body =
-    go (Pattern n [p1, p2]) mName tName body
   go (Pat.Collection ps) mName tName body =
     go (desugarCollection ps) mName tName body
   go (Pat.Tuple ps) mName tName body = go (desugarTuple ps) mName tName body
+  -- PROBLEM: Ad-hoc optimization
+  go (Pat.Infix c1 Pat.Wildcard (Pat.Infix c2 p Pat.Wildcard)) mName tName body | nameBase c1 == "join", nameBase c2 == "cons" =
+    go (Pattern (mkName "elm") [p]) mName tName body
+  go (Pat.Infix n p1 p2) mName tName body =
+    go (Pattern n [p1, p2]) mName tName body
   go (Pat.Pattern cName ps) mName tName body = do
     mNames <- mapM (\_ -> newName "tmpM") ps
     tNames <- mapM (\_ -> newName "tmpT") ps

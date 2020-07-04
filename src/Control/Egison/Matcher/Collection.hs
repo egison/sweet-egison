@@ -50,6 +50,8 @@ class CollectionPattern m t where
   default joinM :: m -> t -> (m, m)
   {-# INLINE joinM #-}
   joinM m _ = (m, m)
+  elm :: Pattern PP m t (ElemT t)
+  elmM :: m -> t -> ElemM m
 
 -- | 'List' matcher is a matcher for collections that matches as if they're normal lists.
 newtype List m = List m
@@ -73,6 +75,10 @@ instance Matcher m t => CollectionPattern (List m) [t] where
   join ps      m (x : xs) = pure ([], x : xs) `mplus` do
     (ys, zs) <- join ps m xs
     pure (x : ys, zs)
+  {-# INLINE elm #-}
+  elm _ (List m) xs = xs
+  {-# INLINE elmM #-}
+  elmM (List m) _ = m
 
 instance (Eq a, Matcher m a, ValuePattern m a) => ValuePattern (List m) [a] where
   value e () (List m) v = if eqAs (List m) (List m) e v then pure () else mzero
