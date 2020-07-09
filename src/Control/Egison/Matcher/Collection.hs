@@ -41,17 +41,19 @@ class CollectionPattern m t where
   nilM _ _ = ()
   -- | Pattern that destructs collections into its head and tail.
   -- @:@ is desugared into 'cons' by the quasi-quoter.
-  cons :: Pattern (PP, PP) m t (ElemT t, t)
+  cons :: Pattern (PP (ElemT t), PP t) m t (ElemT t, t)
   consM :: m -> t -> (ElemM m, m)
   -- | Pattern that destructs collections into its initial prefix and remaining suffix.
   -- @++@ is desugared into 'join' by the quasi-quoter.
-  join :: Pattern (PP, PP) m t (t, t)
+  join :: Pattern (PP t, PP t) m t (t, t)
   joinM :: m -> t -> (m, m)
   default joinM :: m -> t -> (m, m)
   {-# INLINE joinM #-}
   joinM m _ = (m, m)
-  elm :: Pattern PP m t (ElemT t)
+  elm :: Pattern (PP (ElemT t)) m t (ElemT t)
   elmM :: m -> t -> ElemM m
+  joinCons :: Pattern (PP (ElemT t), PP t, PP t) m t (ElemT t, t, t)
+  joinConsM :: m -> t -> (ElemM m, m, m)
 
 -- | 'List' matcher is a matcher for collections that matches as if they're normal lists.
 newtype List m = List m
@@ -80,6 +82,13 @@ instance Matcher m t => CollectionPattern (List m) [t] where
   elm _ (List m) xs = xs
   {-# INLINE elmM #-}
   elmM (List m) _ = m
+  {-# INLINE joinCons #-}
+  joinCons (_, _, _) (List m) xs = f [] xs
+   where
+    f _ [] = []
+    f rhs (x : ts) = (x, reverse rhs, ts) : f (x : rhs) ts
+  {-# INLINE joinConsM #-}
+  joinConsM (List m) _ = (m, List m, List m)
 
 instance (Eq a, Matcher m a, ValuePattern m a) => ValuePattern (List m) [a] where
   value e () (List m) v = if eqAs (List m) (List m) e v then pure () else mzero

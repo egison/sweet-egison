@@ -157,6 +157,9 @@ compilePattern pat body = do
   -- PROBLEM: Ad-hoc optimization
   go (Pat.Infix c1 Pat.Wildcard (Pat.Infix c2 p Pat.Wildcard)) mName tName body | nameBase c1 == "join", nameBase c2 == "cons" =
     go (Pattern (mkName "elm") [p]) mName tName body
+  -- PROBLEM: Ad-hoc optimization
+  go (Pat.Infix c1 p1 (Pat.Infix c2 p2 p3)) mName tName body | nameBase c1 == "join", nameBase c2 == "cons" =
+    go (Pattern (mkName "joinCons") [p2, p1, p3]) mName tName body
   go (Pat.Infix n p1 p2) mName tName body =
     go (Pattern n [p1, p2]) mName tName body
   go (Pat.Pattern cName ps) mName tName body = do
@@ -186,8 +189,9 @@ desugarTuple :: [Pat.Expr Name Name Exp] -> Pat.Expr Name Name Exp
 desugarTuple ps = Pat.Pattern (mkName name) ps
   where name = "tuple" ++ show (length ps)
 
-data PP = WC | GP
+data PP a = WC | VP a | GP
 
 toPP :: Pat.Expr Name Name Exp -> Exp
 toPP Pat.Wildcard = ConE 'WC
+toPP (Pat.Value e) = AppE (ConE 'VP) e
 toPP _            = ConE 'GP

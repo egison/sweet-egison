@@ -36,7 +36,7 @@ instance Matcher Assignment Assign
 
 deduced
   :: Pattern
-       (PP, PP)
+       (PP (Integer, Integer), PP [(Integer, Integer)])
        Assignment
        Assign
        ((Integer, Integer), [(Integer, Integer)])
@@ -45,14 +45,14 @@ deduced _ _ _              = mzero
 
 deducedM Assignment _ = (Pair Literal Stage, Multiset (Pair Literal Stage))
 
-guessed :: Pattern PP Assignment Assign (Integer, Integer)
+guessed :: Pattern (PP (Integer, Integer)) Assignment Assign (Integer, Integer)
 guessed _ _ (Guessed l) = pure l
 guessed _ _ _           = mzero
 
 guessedM Assignment _ = Pair Literal Stage
 
 
-whichever :: Pattern PP Assignment Assign (Integer, Integer)
+whichever :: Pattern (PP (Integer, Integer)) Assignment Assign (Integer, Integer)
 whichever _ _ (Deduced l _) = pure l
 whichever _ _ (Guessed l  ) = pure l
 
