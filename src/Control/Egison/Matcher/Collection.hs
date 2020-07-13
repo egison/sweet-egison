@@ -83,7 +83,7 @@ instance Matcher m t => CollectionPattern (List m) [t] where
   {-# INLINE elmM #-}
   elmM (List m) _ = m
   {-# INLINE joinCons #-}
-  joinCons (_, _, _) (List m) xs = f [] xs
+  joinCons (_, _, _) (List m) = f []
    where
     f _ [] = []
     f rhs (x : ts) = (x, reverse rhs, ts) : f (x : rhs) ts

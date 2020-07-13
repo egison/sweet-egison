@@ -4,7 +4,6 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE TupleSections         #-}
 
 import           Control.Egison
 import           System.Environment
