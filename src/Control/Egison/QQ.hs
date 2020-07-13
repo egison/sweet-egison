@@ -142,6 +142,7 @@ compilePattern pat body = do
                    (VarE tName)
                  )
       `sbind_` LamE [TupP []] body
+  go (Pat.Predicate e) _ tName body = pure $ AppE (VarE 'Control.Monad.Search.guard) (AppE e (VarE tName)) `sbind_` LamE [TupP []] body
   go (Pat.And p1 p2) mName tName body =
     go p2 mName tName body >>= go p1 mName tName
   go (Pat.Or p1 p2) mName tName body = do

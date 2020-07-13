@@ -131,22 +131,18 @@ test_set =
 
 test_prime :: [TestTree]
 test_prime =
-  [ testCase "prime twins"
+  [ testCase "prime twins (value pattern)"
     $ assertEqual
         "simple"
-        [ (3  , 5)
-        , (5  , 7)
-        , (11 , 13)
-        , (17 , 19)
-        , (29 , 31)
-        , (41 , 43)
-        , (59 , 61)
-        , (71 , 73)
-        , (101, 103)
-        , (107, 109)
-        ]
+         [(3,5),(5,7),(11,13),(17,19),(29,31),(41,43),(59,61),(71,73),(101,103),(107,109)]
     $ take 10
     $ matchAll bfs primes (List Eql) [[mc| _ ++ $p : #(p+2) : _ -> (p, p+2) |]]
+  , testCase "prime twins (predicate pattern)"
+    $ assertEqual
+        "simple"
+         [(3,5),(5,7),(11,13),(17,19),(29,31),(41,43),(59,61),(71,73),(101,103),(107,109)]
+    $ take 10
+    $ matchAll bfs primes (List Eql) [[mc| _ ++ $p : ?(\x -> x == p + 2) : _ -> (p, p+2) |]]
   , testCase "(p, p+6)"
     $ assertEqual "simple" [(5, 11), (7, 13), (11, 17), (13, 19), (17, 23)]
     $ take 5
@@ -154,23 +150,13 @@ test_prime =
                primes
                (List Eql)
                [[mc| _ ++ $p : _ ++ #(p+6) : _ -> (p, p+6) |]]
---  , testCase "prime triplets"
---    $ assertEqual
---        "simple"
---        [ (5  , 7  , 11)
---        , (11 , 13 , 17)
---        , (7  , 11 , 13)
---        , (17 , 19 , 23)
---        , (13 , 17 , 19)
---        , (41 , 43 , 47)
---        , (37 , 41 , 43)
---        , (67 , 71 , 73)
---        , (101, 103, 107)
---        , (97 , 101, 103)
---        ]
---    $ take 10
---    $ matchAll bfs
---               primes
---               (List Eql)
---               [[mc| _ ++ $p : $m : #(p+6) : _ -> (p, m, p+6) |]]
+  , testCase "prime triplets"
+    $ assertEqual
+        "simple"
+        [(5,7,11),(7,11,13),(11,13,17),(13,17,19),(17,19,23),(37,41,43),(41,43,47),(67,71,73),(97,101,103),(101,103,107)]
+    $ take 10
+    $ matchAll bfs
+               primes
+               (List Eql)
+               [[mc| _ ++ $p : $m : #(p+6) : _ -> (p, m, p+6) |]]
   ]
