@@ -160,7 +160,7 @@ compilePattern pat body = do
     go (Pattern (mkName "elm") [p]) mName tName body
   -- PROBLEM: Ad-hoc optimization
   go (Pat.Infix c1 p1 (Pat.Infix c2 p2 p3)) mName tName body | nameBase c1 == "join", nameBase c2 == "cons" =
-    go (Pattern (mkName "joinCons") [p2, p1, p3]) mName tName body
+    go (Pattern (mkName "joinCons") [p1, p2, p3]) mName tName body
   go (Pat.Infix n p1 p2) mName tName body =
     go (Pattern n [p1, p2]) mName tName body
   go (Pat.Pattern cName ps) mName tName body = do
