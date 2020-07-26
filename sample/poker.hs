@@ -11,7 +11,7 @@ data Suit = Spade | Heart | Club | Diamond deriving (Eq)
 data CardM = CardM
 instance Matcher CardM Card
 
-card :: Pattern (PP, PP) CardM Card (Suit, Integer)
+card :: Pattern (PP Suit, PP Integer) CardM Card (Suit, Integer)
 card _ _ (Card s n) = pure (s, n)
 
 cardM CardM _ = (Eql, Eql)
