@@ -13,13 +13,8 @@ module Control.Egison.Match
   )
 where
 
-import           Language.Haskell.TH.Quote      ( QuasiQuoter )
 import           Control.Egison.Matcher         ( Matcher )
-import           Control.Monad.Search           ( MonadSearch(..)
-                                                , bfs
-                                                , dfs
-                                                )
-
+import           Control.Monad.Search           ( MonadSearch(..) )
 
 {-# INLINE matchAll #-}
 matchAll

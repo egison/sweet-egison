@@ -15,7 +15,6 @@ module Control.Egison.QQ
 where
 
 -- imports to create 'Name' in compilation
-import           Data.Functor                   ( void )
 import           Control.Monad                  ( MonadPlus(..) )
 import           Control.Monad.Search           ( MonadSearch(..) )
 
@@ -125,7 +124,6 @@ compilePattern pat body = do
  where
   let_ p e1 = LetE [ValD p (NormalB e1) []]
   sbind_ x f = ParensE (UInfixE (ParensE x) (VarE sbindOp) (ParensE f))
-  compose_ f g = ParensE (UInfixE (ParensE f) (VarE '(.)) (ParensE g))
   plusName = 'Control.Monad.mplus
   sbindOp  = '(>>=)
   lnotName = 'Control.Monad.Search.lnot

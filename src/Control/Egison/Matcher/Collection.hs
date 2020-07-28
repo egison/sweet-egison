@@ -19,12 +19,6 @@ import           Control.Egison.Match
 import           Control.Egison.Matcher
 import           Control.Egison.Matcher.Pair
 import           Control.Egison.QQ
-import           Language.Egison.Syntax.Pattern
-                                               as Pat
-                                                ( Expr(..) )
-import           Language.Haskell.TH            ( Exp(..)
-                                                , Name
-                                                )
 
 -- | Class for collection pattern constructors.
 class CollectionPattern m t where
@@ -69,21 +63,21 @@ instance Matcher m t => CollectionPattern (List m) [t] where
   nil _ _ _  = mzero
   {-# INLINE cons #-}
   cons _ _        []       = mzero
-  cons _ (List m) (x : xs) = pure (x, xs)
+  cons _ (List _) (x : xs) = pure (x, xs)
   {-# INLINE consM #-}
   consM (List m) _ = (m, List m)
   {-# INLINABLE join #-}
-  join (WC, _) m xs       = map (\ts -> (undefined, ts)) (tails xs)
-  join _       m []       = pure ([], [])
+  join (WC, _) _ xs       = map (\ts -> (undefined, ts)) (tails xs)
+  join _       _ []       = pure ([], [])
   join ps      m (x : xs) = pure ([], x : xs) `mplus` do
     (ys, zs) <- join ps m xs
     pure (x : ys, zs)
   {-# INLINE elm #-}
-  elm _ (List m) xs = xs
+  elm _ (List _) xs = xs
   {-# INLINE elmM #-}
   elmM (List m) _ = m
   {-# INLINE joinCons #-}
-  joinCons (_, _, _) (List m) = f []
+  joinCons (_, _, _) (List _) = f []
    where
     f _ [] = []
     f rhs (x : ts) = (reverse rhs, x, ts) : f (x : rhs) ts
@@ -105,8 +99,8 @@ instance Matcher m t => CollectionPattern (Multiset m) [t] where
   nil _ _ [] = pure ()
   nil _ _ _  = mzero
   {-# INLINE cons #-}
-  cons (_, WC) (Multiset m) xs = map (\x -> (x, undefined)) xs
-  cons _       (Multiset m) xs = matchAll
+  cons (_, WC) (Multiset _) xs = map (\x -> (x, undefined)) xs
+  cons _       (Multiset _) xs = matchAll
     dfs
     xs
     (List Something)
@@ -132,8 +126,8 @@ instance Matcher m t => CollectionPattern (Set m) [t] where
   nil _ _ [] = pure ()
   nil _ _ _  = mzero
   {-# INLINE cons #-}
-  cons (_, WC) (Set m) xs = map (\x -> (x, undefined)) xs
-  cons _       (Set m) xs = map (\x -> (x, xs)) xs
+  cons (_, WC) (Set _) xs = map (\x -> (x, undefined)) xs
+  cons _       (Set _) xs = map (\x -> (x, xs)) xs
   {-# INLINE consM #-}
   consM (Set m) _ = (m, Set m)
   {-# INLINABLE join #-}
@@ -142,6 +136,10 @@ instance Matcher m t => CollectionPattern (Set m) [t] where
 instance (Eq a, Matcher m a, ValuePattern m a) => ValuePattern (Set m) [a] where
   value e () (Set m) v = if eqAs (List m) (Set m) e v then pure () else mzero
 
+eqAs :: (Matcher m1 t1, Matcher m2 t2,
+         ValuePattern (ElemM m2) (ElemT t2), ElemT t1 ~ ElemT t2,
+         CollectionPattern m1 t1, CollectionPattern m2 t2) =>
+        m1 -> m2 -> t1 -> t2 -> Bool
 eqAs m1 m2 xs ys = match
   dfs
   (xs, ys)
