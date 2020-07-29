@@ -109,6 +109,10 @@ instance Matcher m t => CollectionPattern (Multiset m) [t] where
   consM (Multiset m) _ = (m, Multiset m)
   {-# INLINABLE join #-}
   join = undefined
+  elm = undefined
+  elmM = undefined
+  joinCons = undefined
+  joinConsM = undefined
 
 instance (Eq a, Matcher m a, ValuePattern m a) => ValuePattern (Multiset m) [a] where
   value e () (Multiset m) v =
@@ -132,6 +136,10 @@ instance Matcher m t => CollectionPattern (Set m) [t] where
   consM (Set m) _ = (m, Set m)
   {-# INLINABLE join #-}
   join = undefined
+  elm = undefined
+  elmM = undefined
+  joinCons = undefined
+  joinConsM = undefined
 
 instance (Eq a, Matcher m a, ValuePattern m a) => ValuePattern (Set m) [a] where
   value e () (Set m) v = if eqAs (List m) (Set m) e v then pure () else mzero
