@@ -198,9 +198,10 @@ compilePattern pat body = do
   go' :: (Pat.Expr Name Name Exp, Name, Name) -> Exp -> Q Exp
   go' (p, m, t) = go p m t
   isPatVar :: Pat.Expr Name Name Exp -> Bool
-  isPatVar Pat.Wildcard     = True
-  isPatVar (Pat.Variable _) = True
-  isPatVar _                = False
+  isPatVar Pat.Wildcard      = True
+  isPatVar (Pat.Variable _)  = True
+  isPatVar (Pat.Predicate _) = True
+  isPatVar _                 = False
   mNameToVar :: (Pat.Expr Name Name Exp, Name) -> Pat
   mNameToVar (Pat.Wildcard, _) = WildP
   mNameToVar (Pat.Variable _, _) = WildP
