@@ -51,8 +51,8 @@ library
     , transformers
 
   ghc-options:
-    -O3 -Wunused-local-binds -Wunused-imports -Wunused-matches
-    -Wcompat -Widentities -Wincomplete-record-updates -Wunused-pattern-binds
+    -O3 -Wunused-local-binds -Wunused-imports -Wunused-matches -Wcompat
+    -Widentities -Wincomplete-record-updates -Wunused-pattern-binds
     -Wincomplete-uni-patterns -Wmissing-methods -Wmissing-signatures
 
   default-language:   Haskell2010

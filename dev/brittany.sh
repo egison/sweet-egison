@@ -7,7 +7,7 @@ readonly BRITTANY_VERSION="${BRITTANY_VERSION:-0.12.1.1}"
 function main() {
   declare -a args_out
   for arg in "$@"; do
-    if [[ "$arg" == *"src/Data/Query/Pattern/InternalTH.hs"* ]]; then
+    if [[ "$arg" == *"./src/Control/Egison/Matcher/Collection.hs"* ]]; then
       continue;
     fi
 
