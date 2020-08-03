@@ -208,7 +208,6 @@ compilePattern pat body = do
   mNameToVar (_, mName) = VarP mName
   tNameToVar :: (Pat.Expr Name Name Exp, Name) -> Pat
   tNameToVar (Pat.Wildcard, _) = WildP
-  tNameToVar (Pat.Predicate _, _) = WildP
   tNameToVar (_, tName) = VarP tName
 
 desugarCollection :: [Pat.Expr Name Name Exp] -> Pat.Expr Name Name Exp
