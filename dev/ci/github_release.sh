@@ -13,7 +13,7 @@ function main() {
   local package_messages=''
 
   for cabal_file in **/*.cabal; do
-    local package, package_dir
+    local package package_dir
     package="$(sed -e 's/^name:\s*\(.*\)$/\1/;t;d' $cabal_file)"
     package_dir="$(dirname $cabal_file)"
 
