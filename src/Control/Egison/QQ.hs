@@ -164,7 +164,7 @@ compilePattern pat body = do
     go (Pattern (mkName "joinCons") [p1, p2, p3]) mName tName body
   go (Pat.Infix n p1 p2) mName tName body =
     go (Pattern n [p1, p2]) mName tName body
-  go (Pat.Pattern cName []) mName tName body = do
+  go (Pat.Pattern cName []) mName tName body =
     pure
       $        AppE
                  (VarE 'fromList)
@@ -179,7 +179,7 @@ compilePattern pat body = do
       $        AppE
                  (VarE 'fromList)
                  (AppE (AppE (AppE (VarE cName) (TupE pps)) (VarE mName)) (VarE tName))
-      `sbind_` LamE [TupP (map tNameToVar (zip ps tNames))] body'
+      `sbind_` LamE [TupP (zipWith tNameToVar ps tNames)] body'
   go (Pat.Pattern cName ps) mName tName body = do
     mNames <- mapM (\_ -> newName "tmpM") ps
     tNames <- mapM (\_ -> newName "tmpT") ps
@@ -187,14 +187,14 @@ compilePattern pat body = do
     body' <- foldrM go' body (zip3 ps mNames tNames)
     pure
       $        let_
-                 (TupP (map mNameToVar (zip ps mNames)))
+                 (TupP (zipWith mNameToVar ps mNames))
                  (AppE (AppE (VarE (mkName (show cName ++ "M"))) (VarE mName))
                        (VarE tName)
                  )
       $        AppE
                  (VarE 'fromList)
                  (AppE (AppE (AppE (VarE cName) (TupE pps)) (VarE mName)) (VarE tName))
-      `sbind_` LamE [TupP (map tNameToVar (zip ps tNames))] body'
+      `sbind_` LamE [TupP (zipWith tNameToVar ps tNames)] body'
   go' :: (Pat.Expr Name Name Exp, Name, Name) -> Exp -> Q Exp
   go' (p, m, t) = go p m t
   isPatVar :: Pat.Expr Name Name Exp -> Bool
@@ -202,14 +202,14 @@ compilePattern pat body = do
   isPatVar (Pat.Variable _)  = True
   isPatVar (Pat.Predicate _) = True
   isPatVar _                 = False
-  mNameToVar :: (Pat.Expr Name Name Exp, Name) -> Pat
-  mNameToVar (Pat.Wildcard, _) = WildP
-  mNameToVar (Pat.Variable _, _) = WildP
-  mNameToVar (Pat.Predicate _, _) = WildP
-  mNameToVar (_, mName) = VarP mName
-  tNameToVar :: (Pat.Expr Name Name Exp, Name) -> Pat
-  tNameToVar (Pat.Wildcard, _) = WildP
-  tNameToVar (_, tName) = VarP tName
+  mNameToVar :: Pat.Expr Name Name Exp -> Name -> Pat
+  mNameToVar Pat.Wildcard      _     = WildP
+  mNameToVar (Pat.Variable _)  _     = WildP
+  mNameToVar (Pat.Predicate _) _     = WildP
+  mNameToVar _                 mName = VarP mName
+  tNameToVar :: Pat.Expr Name Name Exp -> Name -> Pat
+  tNameToVar Pat.Wildcard _     = WildP
+  tNameToVar _            tName = VarP tName
 
 desugarCollection :: [Pat.Expr Name Name Exp] -> Pat.Expr Name Name Exp
 desugarCollection = foldr go $ Pat.Pattern (mkName "nil") []
