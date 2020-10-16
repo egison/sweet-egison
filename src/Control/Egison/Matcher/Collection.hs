@@ -77,6 +77,7 @@ instance Matcher m t => CollectionPattern (List m) [t] where
   {-# INLINE elmM #-}
   elmM (List m) _ = m
   {-# INLINE joinCons #-}
+  joinCons (WC, _, WC) (List _) tgt = [ (undefined, x, undefined) | x <- tgt ]
   joinCons (WC, _, _) (List _) tgt = [ (undefined, x, rs) | (x:rs) <- tails tgt ]
   joinCons (_, _, _) (List _) tgt = f [] tgt
    where
