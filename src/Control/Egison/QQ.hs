@@ -181,6 +181,31 @@ compilePattern pat body = do
                  (VarE 'fromList)
                  (AppE (AppE (AppE (VarE cName) (TupE [])) (VarE mName)) (VarE tName))
       `sbind_` LamE [TupP []] body
+  go (Pat.Pattern cName [p]) mName tName body | isPatVar p = do
+    mName' <- newName "tmpM"
+    tName' <- newName "tmpT"
+    let pp = toPP p
+    body' <- go' (p, mName', tName') body
+    pure
+      $        AppE
+                 (VarE 'fromList)
+                 (AppE (AppE (AppE (VarE cName) pp) (VarE mName)) (VarE tName))
+      `sbind_` LamE [tNameToVar p tName'] body'
+  go (Pat.Pattern cName [p]) mName tName body = do
+    mName' <- newName "tmpM"
+    tName' <- newName "tmpT"
+    let pp = toPP p
+    body' <- go' (p, mName', tName') body
+    pure
+      $        let_
+                 (mNameToVar p mName')
+                 (AppE (AppE (VarE (mkName (show cName ++ "M"))) (VarE mName))
+                       (VarE tName)
+                 )
+      $        AppE
+                 (VarE 'fromList)
+                 (AppE (AppE (AppE (VarE cName) pp) (VarE mName)) (VarE tName))
+      `sbind_` LamE [tNameToVar p tName'] body'
   go (Pat.Pattern cName ps) mName tName body | all isPatVar ps = do
     mNames <- mapM (\_ -> newName "tmpM") ps
     tNames <- mapM (\_ -> newName "tmpT") ps
