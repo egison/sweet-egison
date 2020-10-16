@@ -184,7 +184,7 @@ compilePattern pat body = do
   go (Pat.Pattern cName ps) mName tName body | all isPatVar ps = do
     mNames <- mapM (\_ -> newName "tmpM") ps
     tNames <- mapM (\_ -> newName "tmpT") ps
-    let pps = map toPP ps
+    let pps = map (Just . toPP) ps
     body' <- foldrM go' body (zip3 ps mNames tNames)
     pure
       $        AppE
@@ -194,7 +194,7 @@ compilePattern pat body = do
   go (Pat.Pattern cName ps) mName tName body = do
     mNames <- mapM (\_ -> newName "tmpM") ps
     tNames <- mapM (\_ -> newName "tmpT") ps
-    let pps = map toPP ps
+    let pps = map (Just . toPP) ps
     body' <- foldrM go' body (zip3 ps mNames tNames)
     pure
       $        let_
