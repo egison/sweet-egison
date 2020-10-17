@@ -185,7 +185,7 @@ compilePattern pat body = do
     mName' <- newName "tmpM"
     tName' <- newName "tmpT"
     let pp = toPP p
-    body' <- go' (p, mName', tName') body
+    body' <- go p mName' tName' body
     pure
       $        AppE
                  (VarE 'fromList)
@@ -195,7 +195,7 @@ compilePattern pat body = do
     mName' <- newName "tmpM"
     tName' <- newName "tmpT"
     let pp = toPP p
-    body' <- go' (p, mName', tName') body
+    body' <- go p mName' tName' body
     pure
       $        let_
                  (mNameToVar p mName')
