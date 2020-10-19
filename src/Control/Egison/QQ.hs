@@ -6,6 +6,7 @@
 --
 -- This module provides 'QuasiQuoter' that builds 'Query' from nice pattern expressions.
 
+{-# LANGUAGE CPP             #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Control.Egison.QQ
@@ -185,7 +186,7 @@ compilePattern pat body = do
     mName' <- newName "tmpM"
     tName' <- newName "tmpT"
     let pp = toPP p
-    body' <- go' (p, mName', tName') body
+    body' <- go p mName' tName' body
     pure
       $        AppE
                  (VarE 'fromList)
@@ -195,7 +196,7 @@ compilePattern pat body = do
     mName' <- newName "tmpM"
     tName' <- newName "tmpT"
     let pp = toPP p
-    body' <- go' (p, mName', tName') body
+    body' <- go p mName' tName' body
     pure
       $        let_
                  (mNameToVar p mName')
@@ -209,7 +210,11 @@ compilePattern pat body = do
   go (Pat.Pattern cName ps) mName tName body | all isPatVar ps = do
     mNames <- mapM (\_ -> newName "tmpM") ps
     tNames <- mapM (\_ -> newName "tmpT") ps
+#if MIN_VERSION_template_haskell(2,16,0)
     let pps = map (Just . toPP) ps
+#else
+    let pps = map toPP ps
+#endif
     body' <- foldrM go' body (zip3 ps mNames tNames)
     pure
       $        AppE
@@ -219,7 +224,11 @@ compilePattern pat body = do
   go (Pat.Pattern cName ps) mName tName body = do
     mNames <- mapM (\_ -> newName "tmpM") ps
     tNames <- mapM (\_ -> newName "tmpT") ps
+#if MIN_VERSION_template_haskell(2,16,0)
     let pps = map (Just . toPP) ps
+#else
+    let pps = map toPP ps
+#endif
     body' <- foldrM go' body (zip3 ps mNames tNames)
     pure
       $        let_

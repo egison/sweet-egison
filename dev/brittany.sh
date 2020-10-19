@@ -10,6 +10,9 @@ function main() {
     if [[ "$arg" == *"./src/Control/Egison/Matcher/Collection.hs"* ]]; then
       continue;
     fi
+    if [[ "$arg" == *"./src/Control/Egison/QQ.hs"* ]]; then
+      continue;
+    fi
 
     args_out+=( "$arg" )
   done
