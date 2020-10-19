@@ -47,7 +47,7 @@ library
     , haskell-src-exts
     , haskell-src-meta
     , logict                      ^>=0.7.0
-    , template-haskell            >=2.16.0.0
+    , template-haskell
     , transformers
 
   ghc-options:
