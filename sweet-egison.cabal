@@ -1,6 +1,6 @@
 cabal-version:      2.0
 name:               sweet-egison
-version:            0.1.1.2
+version:            0.1.1.3
 synopsis:
   Shallow embedding implementation of non-linear pattern matching
 
