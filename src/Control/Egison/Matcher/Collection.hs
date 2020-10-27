@@ -53,7 +53,7 @@ class CollectionPattern m t where
   default appM :: m -> t -> (Something, m)
   {-# INLINE appM #-}
   appM m _ = (Something, m)
-  appCons :: Pattern (PP t, PP (ElemT t), PP t) m t (t -> t, ElemT t, t)
+  appCons :: Pattern (PP (t -> t), PP (ElemT t), PP t) m t (t -> t, ElemT t, t)
   appConsM :: m -> t -> (Something, ElemM m, m)
 
 -- | 'List' matcher is a matcher for collections that matches as if they're normal lists.
@@ -104,7 +104,7 @@ instance Matcher m t => CollectionPattern (List m) [t] where
   appCons (_, _, _) (List _) tgt   = f id tgt
    where
     f _ [] = []
-    f hs (x : ts) = (hs, x, ts) : f (\ls -> hs (x : ls)) ts
+    f hs (x : ts) = (hs, x, ts) : f (hs . (x :)) ts
   {-# INLINABLE appConsM #-}
   appConsM (List m) _ = (Something, m, List m)
 
