@@ -79,6 +79,7 @@ listFixities :: [ParseFixity Name String]
 listFixities =
   [ ParseFixity (Fixity AssocRight (Precedence 5) (mkName "join")) $ parser "++"
   , ParseFixity (Fixity AssocRight (Precedence 5) (mkName "cons")) $ parser ":"
+  , ParseFixity (Fixity AssocRight (Precedence 5) (mkName "app" )) $ parser "$"
   ]
  where
   parser symbol content | symbol == content = Right ()
@@ -171,6 +172,13 @@ compilePattern pat body = do
   go (Pat.Infix c1 p1 (Pat.Infix c2 p2 p3)) mName tName body
     | nameBase c1 == "join", nameBase c2 == "cons" = go
       (Pattern (mkName "joinCons") [p1, p2, p3])
+      mName
+      tName
+      body
+  -- PROBLEM: Ad-hoc optimization
+  go (Pat.Infix c1 p1 (Pat.Infix c2 p2 p3)) mName tName body
+    | nameBase c1 == "app", nameBase c2 == "cons" = go
+      (Pattern (mkName "appCons") [p1, p2, p3])
       mName
       tName
       body

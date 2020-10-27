@@ -15,7 +15,10 @@ delete x xs =
   match dfs xs (List Eql) [[mc| $hs ++ #x : $ts -> hs ++ ts |], [mc| _ -> xs |]]
 
 delete' x xs =
-  match dfs xs (Multiset Eql) [[mc| $x : $ts -> ts |], [mc| _ -> xs |]]
+  match dfs xs (Multiset Eql) [[mc| #x : $ts -> ts |], [mc| _ -> xs |]]
+
+delete'' x xs =
+  match dfs xs (List Eql) [[mc| $hs $ #x : $ts -> hs ts |], [mc| _ -> xs |]]
 
 deleteNative _ []                = []
 deleteNative x (y : ys) | x == y = ys
@@ -32,4 +35,6 @@ main = do
     -- m'=9000, n'=10000: 0.025
     2 -> print $ length $ delete' m' [1 .. n']
     -- m'=9000, n'=10000: 0.025
-    3 -> print $ length $ deleteNative m' [1 .. n']
+    3 -> print $ length $ delete'' m' [1 .. n']
+    -- m'=9000, n'=10000: 0.025
+    4 -> print $ length $ deleteNative m' [1 .. n']

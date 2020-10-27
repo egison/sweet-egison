@@ -48,6 +48,13 @@ class CollectionPattern m t where
   elmM :: m -> t -> ElemM m
   joinCons :: Pattern (PP t, PP (ElemT t), PP t) m t (t, ElemT t, t)
   joinConsM :: m -> t -> (m, ElemM m, m)
+  app :: Pattern (PP t, PP t) m t (t -> t, t)
+  appM :: m -> t -> (Something, m)
+  default appM :: m -> t -> (Something, m)
+  {-# INLINE appM #-}
+  appM m _ = (Something, m)
+  appCons :: Pattern (PP t, PP (ElemT t), PP t) m t (t -> t, ElemT t, t)
+  appConsM :: m -> t -> (Something, ElemM m, m)
 
 -- | 'List' matcher is a matcher for collections that matches as if they're normal lists.
 newtype List m = List m
@@ -85,6 +92,21 @@ instance Matcher m t => CollectionPattern (List m) [t] where
     f rhs (x : ts) = (reverse rhs, x, ts) : f (x : rhs) ts
   {-# INLINE joinConsM #-}
   joinConsM (List m) _ = (List m, m, List m)
+  {-# INLINABLE app #-}
+  app (WC, _) _ xs       = map (\ts -> (undefined, ts)) (tails xs)
+  app _       _ []       = pure (id, [])
+  app ps      m (x : xs) = pure (id, x : xs) `mplus` do
+    (ys, zs) <- app ps m xs
+    pure (\ls -> x : ys ls, zs)
+  {-# INLINABLE appCons #-}
+  appCons (WC, _, WC) (List _) tgt = [ (undefined, x, undefined) | x <- tgt ]
+  appCons (WC, _, _) (List _) tgt  = [ (undefined, x, rs) | (x:rs) <- tails tgt ]
+  appCons (_, _, _) (List _) tgt   = f id tgt
+   where
+    f _ [] = []
+    f hs (x : ts) = (hs, x, ts) : f (\ls -> hs (x : ls)) ts
+  {-# INLINABLE appConsM #-}
+  appConsM (List m) _ = (Something, m, List m)
 
 instance (Eq a, Matcher m a, ValuePattern m a) => ValuePattern (List m) [a] where
   value e () (List m) v = if eqAs (List m) (List m) e v then pure () else mzero
@@ -115,6 +137,9 @@ instance Matcher m t => CollectionPattern (Multiset m) [t] where
   elmM = undefined
   joinCons = undefined
   joinConsM = undefined
+  app = undefined
+  appCons = undefined
+  appConsM = undefined
 
 instance (Eq a, Matcher m a, ValuePattern m a) => ValuePattern (Multiset m) [a] where
   value e () (Multiset m) v =
@@ -142,6 +167,9 @@ instance Matcher m t => CollectionPattern (Set m) [t] where
   elmM = undefined
   joinCons = undefined
   joinConsM = undefined
+  app = undefined
+  appCons = undefined
+  appConsM = undefined
 
 instance (Eq a, Matcher m a, ValuePattern m a) => ValuePattern (Set m) [a] where
   value e () (Set m) v = if eqAs (List m) (Set m) e v then pure () else mzero
