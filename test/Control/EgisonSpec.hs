@@ -42,7 +42,7 @@ test_pair =
   [ testCase "pair" $ assertEqual "simple" (1, 2) $ match
       dfs
       (1, 2)
-      (Pair Something Something)
+      (Something, Something)
       [[mc| ($x, $y) -> (x, y) |]]
   ]
 

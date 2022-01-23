@@ -181,7 +181,7 @@ eqAs :: (Matcher m1 t1, Matcher m2 t2,
 eqAs m1 m2 xs ys = match
   dfs
   (xs, ys)
-  (Pair m1 m2)
+  (m1, m2)
   [ [mc| ([], []) -> True |]
   , [mc| ($x : $xs, #x : $ys) -> eqAs m1 m2 xs ys |]
   , [mc| _ -> False |]
