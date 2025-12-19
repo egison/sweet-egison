@@ -1,1 +1,4 @@
 packages: .
+
+-- Use GHC 9.10.1 (compatible with HLS 2.10.0.0)
+with-compiler: ghc-9.10.1
