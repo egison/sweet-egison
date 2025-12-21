@@ -33,4 +33,4 @@ jobs:
       - uses: actions/checkout@v4
       - uses: haskell-actions/run-ormolu@v16
         with:
-          version: '0.7.7.0'
+          version: '0.8.0.2'
