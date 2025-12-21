@@ -3,18 +3,17 @@
 -- Module:      Control.Egison.Matcher.Pair
 -- Description: Matchers for pairs
 -- Stability:   experimental
-
 module Control.Egison.Matcher.Pair
-  ( tuple2
-  , tuple2M
+  ( tuple2,
+    tuple2M,
   )
 where
 
-import           Control.Monad                  ( MonadPlus(..) )
-import           Control.Monad.Search
-import           Control.Egison.Match
-import           Control.Egison.Matcher
-import           Control.Egison.QQ
+import Control.Egison.Match
+import Control.Egison.Matcher
+import Control.Egison.QQ
+import Control.Monad (MonadPlus (..))
+import Control.Monad.Search
 
 instance (Matcher m1 t1, Matcher m2 t2) => Matcher (m1, m2) (t1, t2)
 

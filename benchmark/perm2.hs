@@ -1,7 +1,5 @@
-import           Control.Egison
-
-import           Criterion.Main
-
+import Control.Egison
+import Criterion.Main
 
 perm2 :: Int -> [(Int, Int)]
 perm2 n =
@@ -9,29 +7,30 @@ perm2 n =
 
 perm2Native :: Int -> [(Int, Int)]
 perm2Native n = go [1 .. n] [] []
- where
-  go [] _ acc = acc
-  go (x : xs) rest acc =
-    [ (x, y) | y <- rest ++ xs ] ++ go xs (rest ++ [x]) acc
+  where
+    go [] _ acc = acc
+    go (x : xs) rest acc =
+      [(x, y) | y <- rest ++ xs] ++ go xs (rest ++ [x]) acc
 
 main :: IO ()
-main = defaultMain
-  [ bgroup
-      "perm2"
-      [ bgroup
-        "1600"
-        [ bench "native" $ nf perm2Native 1600
-        , bench "sweet-egison" $ nf perm2 1600
+main =
+  defaultMain
+    [ bgroup
+        "perm2"
+        [ bgroup
+            "1600"
+            [ bench "native" $ nf perm2Native 1600,
+              bench "sweet-egison" $ nf perm2 1600
+            ],
+          bgroup
+            "3200"
+            [ bench "native" $ nf perm2Native 3200,
+              bench "sweet-egison" $ nf perm2 3200
+            ],
+          bgroup
+            "6400"
+            [ bench "native" $ nf perm2Native 6400,
+              bench "sweet-egison" $ nf perm2 6400
+            ]
         ]
-      , bgroup
-        "3200"
-        [ bench "native" $ nf perm2Native 3200
-        , bench "sweet-egison" $ nf perm2 3200
-        ]
-      , bgroup
-        "6400"
-        [ bench "native" $ nf perm2Native 6400
-        , bench "sweet-egison" $ nf perm2 6400
-        ]
-      ]
-  ]
+    ]
