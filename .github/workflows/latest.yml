@@ -2,49 +2,35 @@ on:
   push:
     paths-ignore:
       - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'
 
 name: latest
 
 jobs:
   test:
     name: test
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         ghc:
-          - '8.6.2'
-          - '8.6.5'
-          - '8.8.1'
+          - '9.10.1'
         cabal:
-          - '2.4'
-          - '3.0'
-        exclude:
-          - ghc: '8.8.1'
-            cabal: '2.4'
+          - '3.12'
     steps:
-      - uses: actions/checkout@master
-      - uses: actions/setup-haskell@v1
+      - uses: actions/checkout@v4
+      - uses: haskell-actions/setup@v2
         with:
           ghc-version: ${{ matrix.ghc }}
           cabal-version: ${{ matrix.cabal }}
-      - run: cabal new-update
-      - run: cabal new-test all
-  hlint:
-    name: lint .hs
+      - run: cabal update
+      - run: cabal test all
+  ormolu:
+    name: check .hs style (ormolu)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
-      - run: docker run -v $(pwd):/work coorde/hlint:2.2.11 hlint --git
-  hs-fmt:
-    name: check .hs style
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@master
-      - run: find . -name '*.hs' -exec ./dev/brittany.sh --check-mode {} +
-  cabal-fmt:
-    name: check .cabal style
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@master
-      - run: find . -name '*.cabal' -exec docker run -v $(pwd):/work coorde/cabal-fmt:0.1.2 cabal-fmt -i {} +
-      - run: git diff --exit-code
+      - uses: actions/checkout@v4
+      - uses: haskell-actions/run-ormolu@v16
+        with:
+          version: '0.7.7.0'

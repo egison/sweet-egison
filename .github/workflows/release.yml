@@ -8,48 +8,45 @@ name: release
 jobs:
   release_test:
     name: test
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         ghc:
-          - '8.6.2'
-          - '8.6.5'
-          - '8.8.1'
+          - '9.10.1'
         cabal:
-          - '2.4'
-          - '3.0'
-        exclude:
-          - ghc: '8.8.1'
-            cabal: '2.4'
+          - '3.12'
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v4
         with:
           path: src
-      - uses: actions/setup-haskell@v1
+      - uses: haskell-actions/setup@v2
         with:
           ghc-version: ${{ matrix.ghc }}
           cabal-version: ${{ matrix.cabal }}
-      - run: cd src; cabal new-update
+      - run: cd src; cabal update
       - run: |
           cd src
           mkdir ../sdist
-          cabal new-sdist all -o ../sdist
+          cabal sdist all -o ../sdist
       - run: |
           cd sdist
           for archive in *.tar.gz; do tar xf "$archive"; done
           echo "packages: */" > cabal.project
-          cabal new-test all
+          cabal test all
   validate_cabal:
     name: validate .cabal files
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
-      - uses: actions/setup-haskell@v1
+      - uses: actions/checkout@v4
+      - uses: haskell-actions/setup@v2
+        with:
+          ghc-version: '9.10.1'
+          cabal-version: '3.12'
       - run: |
           shopt -s globstar nullglob
           for cabal_file in **/*.cabal; do
             pushd "$(dirname $cabal_file)"
-            test $(sed -e 's/^version:\s*\(.*\)$/\1/;t;d' $cabal_file) = ${GITHUB_REF#refs\/tags\/v}
+            test $(sed -e 's/^version:\s*\(.*\)$/\1/;t;d' *.cabal) = ${GITHUB_REF#refs\/tags\/v}
             cabal check
             popd
           done
@@ -58,9 +55,9 @@ jobs:
     needs:
       - release_test
       - validate_cabal
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v4
       - run: ./dev/ci/github_release.sh
         id: github_release
       - uses: actions/create-release@v1
@@ -76,9 +73,12 @@ jobs:
     needs:
       - release_test
       - validate_cabal
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
-      - uses: actions/setup-haskell@v1
-      - run: mkdir sdist; cabal new-sdist all -o sdist
+      - uses: actions/checkout@v4
+      - uses: haskell-actions/setup@v2
+        with:
+          ghc-version: '9.10.1'
+          cabal-version: '3.12'
+      - run: mkdir sdist; cabal sdist all -o sdist
       - run: cabal upload --publish -u '${{ secrets.HACKAGE_USERNAME }}' -p '${{ secrets.HACKAGE_PASSWORD }}' sdist/*.tar.gz
