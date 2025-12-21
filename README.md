@@ -105,7 +105,7 @@ Match clauses are monoids and can be concatenated using `<>`.
 > member x xs = match dfs xs (Multiset Eql) [[mc| #x : _ -> True |], [mc| _ -> False |]]
 > member 1 [3,4,1,4]
 True
-> intersect xs ys = matchAll dfs (xs, ys) (Pair (Set Eql) (Set Eql)) [[mc| ($x : _, #x : _) -> x |]]
+> intersect xs ys = matchAll dfs (xs, ys) (Set Eql, Set Eql) [[mc| ($x : _, #x : _) -> x |]]
 > intersect [1,2,3] [4,5,3,2]
 [2,3]
 ```

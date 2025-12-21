@@ -55,7 +55,7 @@ library
     -Widentities -Wincomplete-record-updates -Wunused-pattern-binds
     -Wincomplete-uni-patterns -Wmissing-methods -Wmissing-signatures
 
-  default-language:   Haskell2010
+  default-language:   GHC2021
   default-extensions:
     AllowAmbiguousTypes
     DataKinds
@@ -85,7 +85,7 @@ test-suite test
   ghc-options:
     -Wall -threaded -rtsopts -with-rtsopts=-N -Wno-type-defaults
 
-  default-language:   Haskell2010
+  default-language:   GHC2021
   build-depends:
       base
     , primes
@@ -108,7 +108,7 @@ benchmark comb2
   hs-source-dirs:     benchmark
   main-is:            comb2.hs
   ghc-options:        -O3 -Wall -threaded -rtsopts -with-rtsopts=-N
-  default-language:   Haskell2010
+  default-language:   GHC2021
   build-depends:
       base
     , criterion
@@ -124,7 +124,7 @@ benchmark perm2
   hs-source-dirs:     benchmark
   main-is:            perm2.hs
   ghc-options:        -O3 -Wall -threaded -rtsopts -with-rtsopts=-N
-  default-language:   Haskell2010
+  default-language:   GHC2021
   build-depends:
       base
     , criterion

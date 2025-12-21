@@ -6,6 +6,8 @@
 --
 -- This module exposes many combinators to perform pattern matching in [miniEgison](https://hackage.haskell.org/package/mini-egison)-like way.
 
+{-# OPTIONS_GHC -Wno-x-partial #-}
+
 module Control.Egison.Match
   ( matchAll
   , matchAllSingle
